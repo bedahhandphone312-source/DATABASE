@@ -3,6 +3,10 @@
   <head>
       <meta charset="UTF-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script src="https://unpkg.com/html5-qrcode"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
       <title>SISTEM POS - BEDAH HANDPHONE</title>
       <script src="https://cdn.tailwindcss.com/"></script>
       <script src="https://unpkg.com/lucide@latest"></script>
@@ -165,6 +169,14 @@
                           <input type="text" id="search-pos" onkeyup="filterPos()" placeholder="Cari part..." class="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-indigo-500 outline-none transition-all">
                       </div>
                   </div>
+                <button onclick="toggleScanner()" class="bg-amber-500 text-white px-4 py-2.5 rounded-xl flex items-center gap-2 font-black text-[10px] uppercase shadow-lg shadow-amber-100 transition-all">
+    <i data-lucide="scan-line" class="w-4 h-4"></i> Scan Barcode
+</button>
+
+<div id="scanner-container" class="hidden my-4 p-4 bg-white rounded-3xl border-2 border-dashed border-indigo-200">
+    <div id="reader" style="width: 100%;"></div>
+    <button onclick="toggleScanner()" class="w-full mt-4 text-red-500 font-bold text-[10px] uppercase">Tutup Kamera</button>
+</div>
 
                   <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
                       <div class="lg:col-span-8">
@@ -467,167 +479,84 @@
 
       <script>
       // 1. ALAMAT KONEKSI & AUTH (FIXED)
-      const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyhooPLYS9d6j8PNFq4G0AdVL7RFDNxZzqeVfsxDm6eH6H_W7z8N891Ifk2pTCKcMuf4g/exec";
+      const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzNjLD3IXqBHdNZrXJK_nUrOppt4x-tF0e3PB0TDLDk0fz-3pToEG-QXMF_YnonK9KO0Q/exec";
 
         async function prosesLogin() {
     const userIn = document.getElementById('login-user').value.trim().toUpperCase();
     const passIn = document.getElementById('login-pass').value;
 
-    if (!userIn || !passIn) return Swal.fire('Error', 'Username & Password wajib diisi', 'error');
-
-    Swal.fire({ title: 'Memverifikasi...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); }});
-
-    const userValid = users.find(u => u.username.toUpperCase() === userIn && String(u.pass) === String(passIn));
-
-    if (userValid) {
-        // Simpan data user ke sesi sekarang
-        loggedInUser.fullname = userValid.fullname;
-        loggedInUser.role = userValid.role;
-        loggedInUser.cabang = (userValid.role === 'OWNER') ? "ALL" : String(userValid.cabang).trim();
-
-        // 1. Jalankan fungsi permission & load data di background
-        checkPermissions();
-        await loadDataFromCloud();
-
-        // 2. Tampilkan notifikasi BERHASIL dulu
-        Swal.fire({
-            icon: 'success',
-            title: 'Login Berhasil',
-            text: `Selamat bekerja di Cabang ${userValid.cabang}`,
-            timer: 1500,
-            showConfirmButton: false
-        }).then(() => {
-            // 3. SETELAH notifikasi selesai/hilang, baru buka dashboard
-            document.getElementById('login-overlay').classList.add('hidden');
-            document.getElementById('main-dashboard').classList.remove('hidden');
-        });
-
-    } else {
-        Swal.fire('Gagal', 'Username atau Password salah!', 'error');
+    if (!userIn || !passIn) {
+        return Swal.fire('Error', 'Username & Password wajib diisi', 'error');
     }
-}
 
-      // LOGIN DENGAN IDENTITAS CABANG
-      let loggedInUser = { fullname: "", role: "", cabang: "" };
-
-function formatTglIndo(tglRaw) {
-    if (!tglRaw || tglRaw === "-" || tglRaw === "") return "-";
-    const d = new Date(tglRaw);
-    if (isNaN(d.getTime())) return tglRaw;
-    const tgl = String(d.getDate()).padStart(2, '0');
-    const bln = String(d.getMonth() + 1).padStart(2, '0');
-    const thn = d.getFullYear();
-    return `${tgl}/${bln}/${thn}`;
-}
-        function getTodayISODate() {
-    const d = new Date();
-    const year = d.getFullYear();
-    const month = String(d.getMonth() + 1).padStart(2, '0');
-    const day = String(d.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
-}
-        // 2. VARIABEL DATA UTAMA
-      let users = [];
-      let products = [];
-      let services = [];
-      let cart = []; 
-      let salesData = [];
-      let mutations = [];
-
-      // 2. FUNGSI UNTUK MENARIK DATA DARI SPREADSHEET (BIAR SINKRON)
-      async function loadDataFromCloud() {
-    Swal.fire({ 
-        title: 'Sinkronisasi Cloud...', 
-        allowOutsideClick: false, 
-        didOpen: () => { Swal.showLoading(); }
+    Swal.fire({
+        title: 'Verifikasi User...',
+        allowOutsideClick: false,
+        didOpen: () => Swal.showLoading()
     });
 
-    const sheets = ["SERVICE", "STOK", "USERS", "LAPORAN", "MUTASI"]; 
+    // 🔥 1. LOAD USERS DULU
+    try {
+        const res = await fetch(WEB_APP_URL, {
+            method: "POST",
+            body: JSON.stringify({
+                action: "getData",
+                targetSheet: "USERS"
+            })
+        });
 
-    for (let sName of sheets) {
-        try {
-            const response = await fetch(WEB_APP_URL, {
-                method: "POST",
-                body: JSON.stringify({ action: "getData", targetSheet: sName })
-            });
-            const result = await response.json();
+        const result = await res.json();
 
-            if (result.status === "success") {
-                const rawData = result.data;
-                const userCabang = loggedInUser.cabang.toUpperCase();
-                const isOwner = (loggedInUser.role === 'OWNER' || loggedInUser.cabang === 'ALL');
+        if (result.status !== "success") {
+            throw new Error("Gagal load USERS");
+        }
 
-                // FILTER SERVICE (Cabang di index 16)
-                if (sName === "SERVICE") {
-                    services = rawData.filter(row => {
-                        if (isOwner) return true;
-    // Ambil data cabang dari kolom index 16 (Kolom Q)
-    const cabangDiSheet = String(row[16] || "").trim().toUpperCase();
-    const cabangLogin = userCabang.trim().toUpperCase();
-    return cabangDiSheet === cabangLogin;
-}).map(row => ({
-                        id: Date.now() + Math.random(),
-                        tglM: formatTglIndo(row[0]), tglA: formatTglIndo(row[1]), nota: row[2], nama: row[3], wa: row[4],
-                        unit: row[5], rusak: row[6], jasa: row[7], part: row[8],
-                        total: row[9], garansi: row[10], teknisi: row[11], admin: row[12],
-                        status: row[13], bayar: row[14], cetak: row[15], cabang: row[16]
-                    }));
-                } 
+        users = result.data.map((row, i) => ({
+            id: i + 1,
+            username: String(row[0]).trim(),
+            fullname: row[1],
+            role: row[2],
+            pass: String(row[3]).trim(),
+            cabang: row[4]
+        }));
 
-                // FILTER STOK & KATALOG KASIR (Cabang di index 12)
-                else if (sName === "STOK") {
-                    products = rawData.filter(row => {
-                        if (isOwner) return true;
-    // Kolom M adalah index 12
-    return String(row[12] || "").trim().toUpperCase() === userCabang.trim().toUpperCase();
-}).map(row => ({
-                        tgl: formatTglIndo(row[0]), nama: row[1], stok: row[2], keluar: row[3],
-                        rusak: row[4], retur: row[5], kepService: row[6],
-                        nota: row[7], admin: row[8], ket: row[9],
-                        modal: row[10], price: row[11], cabang: row[12],
-                        id: Math.random()
-                    }));
-                } 
-
-                // USERS (Tanpa filter untuk login)
-                else if (sName === "USERS") {
-                    users = rawData.map((row, idx) => ({
-                        id: idx + 1, username: String(row[0]).trim(), fullname: row[1], 
-                        role: row[2], pass: String(row[3]).trim(), cabang: row[4]
-                    }));
-                }
-
-                // FILTER LAPORAN (Cabang di index 8)
-                else if (sName === "LAPORAN") {
-                    salesData = rawData.filter(row => {
-                        if (isOwner) return true;
-                        return String(row[8]).toUpperCase() === userCabang;
-                    }).map(row => ({
-                        tgl: formatTglIndo(row[0]), nota: row[1], item: row[2], qty: row[3], harga: row[4],
-                        garansi: row[5], modal: row[6], laba: row[7], cabang: row[8]
-                    }));
-                }
-
-                // FILTER MUTASI (Asal Cabang di index 3, Tujuan di index 4)
-                else if (sName === "MUTASI") {
-                    mutations = rawData.filter(row => {
-                        if (isOwner) return true;
-                        const asal = String(row[3]).toUpperCase();
-                        const tujuan = String(row[4]).toUpperCase();
-                        return asal === userCabang || tujuan === userCabang;
-                    }).map(row => ({
-                        tglK: formatTglIndo(row[0]), barang: row[1], jml: row[2], asal: row[3], tujuan: row[4],
-                        admM: row[5], admT: row[6], status: row[7], ket: row[8], tglT: formatTglIndo(row[9]),
-                        cabang: row[10], modal: row[11], price: row[12], id: Math.random()
-                    }));
-                }
-            }
-        } catch (e) { console.error("Gagal sinkron " + sName, e); }
+    } catch (err) {
+        console.error(err);
+        return Swal.fire('Error', 'Tidak bisa sinkron user', 'error');
     }
-    Swal.close();      
-    renderAll();       
-    checkPermissions(); 
-} // Penutup UTAMA Async Function loadDataFromCloud
+
+    // 🔐 2. VALIDASI LOGIN
+    const userValid = users.find(u =>
+        u.username.toUpperCase() === userIn &&
+        String(u.pass) === String(passIn)
+    );
+
+    if (!userValid) {
+        return Swal.fire('Gagal', 'Username atau Password salah', 'error');
+    }
+
+    // ✅ 3. SET SESSION LOGIN
+    loggedInUser.fullname = userValid.fullname;
+    loggedInUser.role = userValid.role;
+    loggedInUser.cabang = userValid.role === 'OWNER'
+        ? 'ALL'
+        : String(userValid.cabang).trim();
+
+    // 🔄 4. LOAD SEMUA DATA SETELAH LOGIN
+    await loadDataFromCloud();
+
+    Swal.fire({
+        icon: 'success',
+        title: 'Login Berhasil',
+        text: `Cabang ${loggedInUser.cabang}`,
+        timer: 1300,
+        showConfirmButton: false
+    }).then(() => {
+        document.getElementById('login-overlay').classList.add('hidden');
+        document.getElementById('main-dashboard').classList.remove('hidden');
+    });
+}
+ // Penutup UTAMA Async Function loadDataFromCloud
 
       // --- MESIN PENGIRIM DATA KE CLOUD ---
       async function sendToCloud(target, rowData) {
@@ -869,6 +798,9 @@ function formatTglIndo(tglRaw) {
                     <button onclick="stockAction(${p.id}, 'rusak')" class="bg-red-50 text-red-500 p-1.5 rounded-lg"><i data-lucide="frown" class="w-3.5 h-3.5"></i></button>
                     <button onclick="stockAction(${p.id}, 'retur')" class="bg-orange-50 text-orange-500 p-1.5 rounded-lg"><i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i></button>
                     <button onclick="finishRetur(${p.id})" class="bg-emerald-50 text-emerald-500 p-1.5 rounded-lg"><i data-lucide="package-check" class="w-3.5 h-3.5"></i></button>
+                    <button onclick="cetakBarcodeBarang(${p.id})" class="bg-slate-100 text-slate-600 p-1.5 rounded-lg hover:bg-indigo-600 hover:text-white transition-all">
+    <i data-lucide="barcode" class="w-3.5 h-3.5"></i>
+</button>
                 </div>
             </td>
         </tr>`).join('');
@@ -1611,6 +1543,137 @@ function generateNota(prefix) {
     // Hasil: PREFIX-YYMMDD-URUTAN (Contoh: SRV-260106-001)
     return `${prefix}-${datePart}-${String(count).padStart(3, '0')}`;
 }  
+    // ==========================================
+// AWAL LOGIKA SCANNER (KAMERA & LASER)
+// ==========================================
+let html5QrCode; 
+
+// Fungsi untuk membuka/menutup Kamera HP/PC
+function toggleScanner() {
+    const container = document.getElementById('scanner-container');
+    if (container.classList.contains('hidden')) {
+        container.classList.remove('hidden');
+        html5QrCode = new Html5Qrcode("reader");
+        const config = { fps: 15, qrbox: { width: 250, height: 150 } };
+        
+        html5QrCode.start({ facingMode: "environment" }, config, (decodedText) => {
+            // Jika kamera berhasil baca barcode, kirim teksnya ke fungsi eksekusi
+            eksekusiScan(decodedText);
+        }).catch(err => {
+            console.error("Kamera gagal akses:", err);
+            Swal.fire('Error', 'Gagal akses kamera. Pastikan izin diberikan.', 'error');
+        });
+    } else {
+        container.classList.add('hidden');
+        if (html5QrCode) {
+            html5QrCode.stop().then(() => { html5QrCode = null; });
+        }
+    }
+}
+
+// Logika Pendengar untuk Alat Scanner Laser Fisik
+let barcodeBuffer = "";
+window.addEventListener('keypress', (e) => {
+    // Abaikan jika kursor sedang aktif di kotak input/tulis (biar tidak double input)
+    if (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA') {
+        return;
+    }
+
+    if (e.key === 'Enter') {
+        if (barcodeBuffer.length > 2) {
+            eksekusiScan(barcodeBuffer);
+            barcodeBuffer = ""; 
+        }
+    } else {
+        barcodeBuffer += e.key;
+        // Bersihkan buffer otomatis dalam 200 milidetik (ciri khas scanner laser cepat)
+        setTimeout(() => { barcodeBuffer = ""; }, 200); 
+    }
+});
+
+// JANTUNGNYA: Fungsi untuk mencari barang berdasarkan hasil scan
+function eksekusiScan(kodeBarcode) {
+    const hasil = kodeBarcode.trim().toUpperCase();
+    
+    // Cari barang berdasarkan Nama atau Nota di database aplikasi kamu
+    const item = products.find(p => 
+        (p.nama && p.nama.toUpperCase() === hasil) || 
+        (p.nota && p.nota.toUpperCase() === hasil)
+    );
+
+    if (item) {
+        addToCart(item.id); // Panggil fungsi keranjang asli kamu
+        
+        // Notifikasi pojok layar agar kasir tahu barang masuk
+        Swal.fire({
+            toast: true,
+            position: 'top-end',
+            icon: 'success',
+            title: `[${item.stok}] ${item.nama} Masuk Keranjang`,
+            showConfirmButton: false,
+            timer: 1500
+        });
+    } else {
+        console.log("Barcode tidak terdaftar: " + hasil);
+        Swal.fire({
+            toast: true,
+            position: 'top-end',
+            icon: 'warning',
+            title: 'Barcode tidak dikenal: ' + hasil,
+            showConfirmButton: false,
+            timer: 2000
+        });
+    }
+}
+// ==========================================
+// AKHIR LOGIKA SCANNER
+// ==========================================
+    // ==========================================
+// LOGIKA CETAK BARCODE BARANG
+// ==========================================
+function cetakBarcodeBarang(id) {
+    // 1. Cari data barangnya
+    const p = products.find(x => x.id === id);
+    if (!p) return;
+
+    // 2. Buat elemen canvas sementara untuk menggambar barcode
+    const canvas = document.createElement("canvas");
+    
+    // 3. Setting Barcode (Gunakan Nota karena lebih stabil/pendek)
+    JsBarcode(canvas, p.nota, {
+        format: "CODE128",
+        width: 2,           // Ketebalan garis
+        height: 40,         // Tinggi garis
+        displayValue: true, // Munculkan teks nota di bawah
+        fontSize: 14,
+        lineColor: "#000"
+    });
+
+    const barcodeDataUrl = canvas.toDataURL("image/png");
+
+    // 4. Siapkan area cetak (Sesuai printer thermal 58mm)
+    const area = document.getElementById('print-area');
+    area.innerHTML = `
+        <div style="width: 58mm; padding: 10px; text-align: center; color: black; background: white; font-family: 'Courier New', Courier, monospace;">
+            <div style="font-size: 11px; font-weight: bold; text-transform: uppercase; margin-bottom: 5px; border-bottom: 1px solid #000; padding-bottom: 3px;">
+                BEDAH HP - ${loggedInUser.cabang}
+            </div>
+            <div style="font-size: 10px; margin-bottom: 5px; font-weight: bold;">${p.nama}</div>
+            <img src="${barcodeDataUrl}" style="width: 100%; max-width: 150px;">
+            <div style="font-size: 12px; font-weight: 900; margin-top: 5px; border-top: 1px dashed #000; padding-top: 5px;">
+                Rp ${Number(p.price).toLocaleString('id-ID')}
+            </div>
+        </div>
+    `;
+
+    // 5. Eksekusi Print
+    area.classList.remove('hidden');
+    setTimeout(() => {
+        window.print();
+        area.classList.add('hidden');
+        area.innerHTML = ''; // Bersihkan kembali
+    }, 500);
+}
     </script>
   </body>
   </html>
