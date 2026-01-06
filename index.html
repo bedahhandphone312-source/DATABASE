@@ -479,7 +479,7 @@
 
       <script>
       // 1. ALAMAT KONEKSI & AUTH (FIXED)
-      const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzNjLD3IXqBHdNZrXJK_nUrOppt4x-tF0e3PB0TDLDk0fz-3pToEG-QXMF_YnonK9KO0Q/exec";
+      const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyPutmQOHGYSYSZDwocKT_YW66VMCfHLVnmxaBs3_unk38lmVPG77I9VDRnRgu82I3CQQ/exec";
 
         async function prosesLogin() {
     const userIn = document.getElementById('login-user').value.trim().toUpperCase();
@@ -490,12 +490,12 @@
     }
 
     Swal.fire({
-        title: 'Verifikasi User...',
+        title: 'Sinkronisasi User...',
         allowOutsideClick: false,
         didOpen: () => Swal.showLoading()
     });
 
-    // 🔥 1. LOAD USERS DULU
+    // 🔥 LOAD USERS DULU
     try {
         const res = await fetch(WEB_APP_URL, {
             method: "POST",
@@ -507,25 +507,22 @@
 
         const result = await res.json();
 
-        if (result.status !== "success") {
-            throw new Error("Gagal load USERS");
+        if (result.status === "success") {
+            users = result.data.map((row, i) => ({
+                id: i + 1,
+                username: String(row[0]).trim(),
+                fullname: row[1],
+                role: row[2],
+                pass: String(row[3]).trim(),
+                cabang: row[4]
+            }));
         }
-
-        users = result.data.map((row, i) => ({
-            id: i + 1,
-            username: String(row[0]).trim(),
-            fullname: row[1],
-            role: row[2],
-            pass: String(row[3]).trim(),
-            cabang: row[4]
-        }));
-
-    } catch (err) {
-        console.error(err);
-        return Swal.fire('Error', 'Tidak bisa sinkron user', 'error');
+    } catch (e) {
+        Swal.fire('Error', 'Gagal sinkron user', 'error');
+        return;
     }
 
-    // 🔐 2. VALIDASI LOGIN
+    // ✅ BARU CEK LOGIN
     const userValid = users.find(u =>
         u.username.toUpperCase() === userIn &&
         String(u.pass) === String(passIn)
@@ -535,21 +532,18 @@
         return Swal.fire('Gagal', 'Username atau Password salah', 'error');
     }
 
-    // ✅ 3. SET SESSION LOGIN
+    // ✅ SET SESSION LOGIN
     loggedInUser.fullname = userValid.fullname;
     loggedInUser.role = userValid.role;
-    loggedInUser.cabang = userValid.role === 'OWNER'
-        ? 'ALL'
-        : String(userValid.cabang).trim();
+    loggedInUser.cabang = userValid.role === 'OWNER' ? 'ALL' : userValid.cabang;
 
-    // 🔄 4. LOAD SEMUA DATA SETELAH LOGIN
+    // 🔄 LOAD SEMUA DATA SETELAH LOGIN
     await loadDataFromCloud();
 
     Swal.fire({
         icon: 'success',
         title: 'Login Berhasil',
-        text: `Cabang ${loggedInUser.cabang}`,
-        timer: 1300,
+        timer: 1200,
         showConfirmButton: false
     }).then(() => {
         document.getElementById('login-overlay').classList.add('hidden');
