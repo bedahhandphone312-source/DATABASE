@@ -107,7 +107,7 @@
 
       <div id="print-area" class="hidden"></div>
 
-      <div class="flex flex-col md:flex-row">
+      <div id="main-dashboard" class="flex flex-col md:flex-row hidden">
           <aside class="bg-white w-full md:w-72 p-6 border-r md:sticky md:top-0 md:h-screen flex flex-col z-50">
               <div class="flex items-center gap-3 mb-10 px-2">
                   <div class="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center text-white shadow-lg"><i data-lucide="smartphone"></i></div>
@@ -470,42 +470,42 @@
       const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyhooPLYS9d6j8PNFq4G0AdVL7RFDNxZzqeVfsxDm6eH6H_W7z8N891Ifk2pTCKcMuf4g/exec";
 
         async function prosesLogin() {
-      const userIn = document.getElementById('login-user').value.trim().toUpperCase();
-      const passIn = document.getElementById('login-pass').value;
+    const userIn = document.getElementById('login-user').value.trim().toUpperCase();
+    const passIn = document.getElementById('login-pass').value;
 
-      if (!userIn || !passIn) return Swal.fire('Error', 'Username & Password wajib diisi', 'error');
+    if (!userIn || !passIn) return Swal.fire('Error', 'Username & Password wajib diisi', 'error');
 
-      // Tampilkan loading saat cek data
-      Swal.fire({ title: 'Memverifikasi...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); }});
+    Swal.fire({ title: 'Memverifikasi...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); }});
 
-      // Cari kecocokan di data 'users' yang sudah ditarik dari Cloud
-      const userValid = users.find(u => u.username.toUpperCase() === userIn && String(u.pass) === String(passIn));
+    const userValid = users.find(u => u.username.toUpperCase() === userIn && String(u.pass) === String(passIn));
 
-      if (userValid) {
-          // Simpan data user ke sesi sekarang
-          loggedInUser.fullname = userValid.fullname;
-          loggedInUser.role = userValid.role;
-          loggedInUser.cabang = (userValid.role === 'OWNER') ? "ALL" : String(userValid.cabang).trim();
+    if (userValid) {
+        // Simpan data user ke sesi sekarang
+        loggedInUser.fullname = userValid.fullname;
+        loggedInUser.role = userValid.role;
+        loggedInUser.cabang = (userValid.role === 'OWNER') ? "ALL" : String(userValid.cabang).trim();
 
-          // Tutup layar login
-
-        document.getElementById('login-overlay').classList.add('hidden');
+        // 1. Jalankan fungsi permission & load data di background
         checkPermissions();
+        await loadDataFromCloud();
 
-          // Jalankan ulang load data agar filter cabang aktif
-          await loadDataFromCloud();
+        // 2. Tampilkan notifikasi BERHASIL dulu
+        Swal.fire({
+            icon: 'success',
+            title: 'Login Berhasil',
+            text: `Selamat bekerja di Cabang ${userValid.cabang}`,
+            timer: 1500,
+            showConfirmButton: false
+        }).then(() => {
+            // 3. SETELAH notifikasi selesai/hilang, baru buka dashboard
+            document.getElementById('login-overlay').classList.add('hidden');
+            document.getElementById('main-dashboard').classList.remove('hidden');
+        });
 
-          Swal.fire({
-              icon: 'success',
-              title: 'Login Berhasil',
-              text: `Selamat bekerja di Cabang ${userValid.cabang}`,
-              timer: 1500,
-              showConfirmButton: false
-          });
-      } else {
-          Swal.fire('Gagal', 'Username atau Password salah!', 'error');
-      }
-  }
+    } else {
+        Swal.fire('Gagal', 'Username atau Password salah!', 'error');
+    }
+}
 
       // LOGIN DENGAN IDENTITAS CABANG
       let loggedInUser = { fullname: "", role: "", cabang: "" };
@@ -660,38 +660,37 @@ function formatTglIndo(tglRaw) {
       }
 
       function handleLogout() {
-      Swal.fire({
-          title: 'Konfirmasi Logout',
-          text: "Kembali ke layar login?",
-          icon: 'warning',
-          showCancelButton: true,
-          confirmButtonColor: '#4f46e5',
-          confirmButtonText: 'YA, KELUAR'
-      }).then((result) => {
-          if (result.isConfirmed) {
-              // 1. Reset data session tanpa refresh halaman
-              loggedInUser = { fullname: "", role: "", cabang: "" };
+    Swal.fire({
+        title: 'Konfirmasi Logout',
+        text: "Kembali ke layar login?",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#4f46e5',
+        confirmButtonText: 'YA, KELUAR'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            // 1. Reset data session
+            loggedInUser = { fullname: "", role: "", cabang: "" };
 
-              // 2. Kosongkan inputan login sebelumnya
-              document.getElementById('login-user').value = "";
-              document.getElementById('login-pass').value = "";
+            // 2. Sembunyikan dashboard utama
+            document.getElementById('main-dashboard').classList.add('hidden');
 
-              // 3. Tampilkan kembali tirai login
-              document.getElementById('login-overlay').classList.remove('hidden');
+            // 3. Tampilkan kembali tirai login biru
+            document.getElementById('login-overlay').classList.remove('hidden');
 
-              // 4. Reset tampilan sidebar ke awal
-              document.getElementById('display-username').innerText = "Guest";
-              document.getElementById('display-cabang').innerText = "Cabang";
+            // 4. Kosongkan inputan login
+            document.getElementById('login-user').value = "";
+            document.getElementById('login-pass').value = "";
 
-              // 5. Sembunyikan menu owner (jika ada)
-              const tabUser = document.getElementById('tab-users');
-              if(tabUser) tabUser.classList.add('hidden');
-
-              // 6. Kembalikan tampilan ke tab kasir (POS)
-              switchTab('pos');
-          }
-      });
-  }
+            // 5. Kembalikan ke tab POS (Kasir)
+            switchTab('pos');
+            
+            // 6. Reset tampilan sidebar
+            document.getElementById('display-username').innerText = "Guest";
+            document.getElementById('display-cabang').innerText = "Cabang";
+        }
+    });
+}
 
       // --- MANAJEMEN USER ---
       function prepareAddUser() {
