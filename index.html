@@ -2164,8 +2164,12 @@ function renderLaporanRealtime(data) {
     let totalOmset = 0; 
     let totalBersih = 0; 
 
-    // Cek User Login (Safety Check)
-    const userCabang = (typeof loggedInUser !== 'undefined' && loggedInUser.cabang) ? loggedInUser.cabang.toUpperCase() : "";
+    // 1. SIAPKAN DATA USER LOGIN (Pastikan formatnya Huruf Besar & Tanpa Spasi)
+    // Cek apakah loggedInUser ada, jika tidak anggap kosong
+    const userCabang = (typeof loggedInUser !== 'undefined' && loggedInUser.cabang) 
+        ? String(loggedInUser.cabang).toUpperCase().trim() 
+        : "";
+        
     const isOwner = (typeof loggedInUser !== 'undefined' && String(loggedInUser.role).toUpperCase() === 'OWNER');
 
     let htmlRows = "";
@@ -2174,22 +2178,24 @@ function renderLaporanRealtime(data) {
         htmlRows = '<tr><td colspan="9" class="text-center p-4 text-slate-400">Belum ada data transaksi.</td></tr>';
     } else {
         data.forEach(item => {
-            // Filter: Jika bukan Owner, hanya tampilkan data cabangnya
-            if (!isOwner && item.cabang !== userCabang) return;
+            // 2. NORMALISASI DATA DARI SPREADSHEET (Ubah ke Huruf Besar & Hapus Spasi)
+            const itemCabang = String(item.cabang || "").toUpperCase().trim();
 
-            // Pastikan data angka aman (konversi string ke angka)
+            // 3. LOGIKA FILTER YANG DIPERBAIKI
+            // Jika BUKAN Owner, DAN Cabang Item TIDAK SAMA dengan Cabang User -> LEWATI (Return)
+            if (!isOwner && itemCabang !== userCabang) return;
+
+            // --- Mulai sini sama seperti sebelumnya ---
             const qty = Number(item.qty) || 0;
             const jual = Number(item.jual) || 0;
             const laba = Number(item.laba) || 0;
             const modal = Number(item.modal) || 0;
 
-            // Hitung Dashboard
             totalNota.add(item.nota);
             totalQty += qty;
             totalOmset += jual; 
             totalBersih += laba;
 
-            // Render Baris Tabel
             htmlRows += `
             <tr class="border-b hover:bg-slate-50 text-sm">
                 <td class="p-3 text-slate-500">${item.tgl}</td>
