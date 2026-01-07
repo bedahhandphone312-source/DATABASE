@@ -163,6 +163,9 @@
                 <button onclick="toggleTheme()" class="md:hidden p-2 rounded-full bg-slate-100 text-slate-600 hover:bg-indigo-100 hover:text-indigo-600 transition-all">
                     <i data-lucide="moon" id="theme-icon-mobile" class="w-5 h-5"></i>
                 </button>
+            <button onclick="handleLogout()" class="md:hidden ml-2 p-2 rounded-full bg-red-50 text-red-500 hover:bg-red-100 transition-all">
+    <i data-lucide="log-out" class="w-5 h-5"></i>
+</button>
             </div>
 
             <nav class="flex flex-row md:flex-col gap-2 overflow-x-auto md:overflow-visible hide-scroll flex-1">
@@ -656,16 +659,27 @@
                 checkPermissions();
                 await loadDataFromCloud();
 
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Login Berhasil',
-                    text: `Selamat bekerja di Cabang ${userValid.cabang}`,
-                    timer: 1500,
-                    showConfirmButton: false
-                }).then(() => {
-                    document.getElementById('login-overlay').classList.add('hidden');
-                    document.getElementById('main-dashboard').classList.remove('hidden');
-                });
+                // --- TEMPEL KODE INI ---
+
+// Logika: Cek apakah yang login OWNER atau bukan
+let pesanSapaan = `Selamat bekerja di Cabang ${userValid.cabang}`;
+
+// Jika Role-nya OWNER, ganti pesannya
+if (String(userValid.role).toUpperCase() === 'OWNER') {
+    pesanSapaan = "Selamat Datang, Owner! Akses Full Control.";
+}
+
+Swal.fire({
+    icon: 'success',
+    title: 'Login Berhasil',
+    text: pesanSapaan, // Menggunakan pesan yang sudah dicek
+    timer: 1500,
+    showConfirmButton: false
+}).then(() => {
+    document.getElementById('login-overlay').classList.add('hidden');
+    document.getElementById('main-dashboard').classList.remove('hidden');
+});
+// --- AKHIR KODE BARU ---
 
             } else {
                     Swal.fire('Gagal', result.message || 'Login Gagal', 'error');
@@ -2005,6 +2019,7 @@
     </script>
 </body>
 </html>
+
 
 
 
