@@ -1,4 +1,4 @@
-  <!DOCTYPE html>
+<!DOCTYPE html>
   <html lang="id">
   <head>
       <meta charset="UTF-8">
@@ -140,7 +140,10 @@
                   <button onclick="switchTab('users')" id="tab-users" class="nav-link hidden">
                       <i data-lucide="users" class="w-4 h-4"></i> Management User
                   </button>
-              </nav>
+            <button onclick="loadDataFromCloud()" class="nav-link text-emerald-600 hover:bg-emerald-50 mt-4 border border-emerald-100">
+    <i data-lucide="refresh-cw" class="w-4 h-4"></i> Sinkron Cloud
+</button>  
+            </nav>
 
               <div class="mt-auto pt-6 border-t border-slate-100">
                   <div class="flex items-center gap-3 mb-4 px-2">
@@ -300,11 +303,23 @@
               </div>
 
               <div id="sec-laporan" class="hidden space-y-6">
-                  <div class="flex justify-between items-center">
-                      <h2 class="text-2xl font-black uppercase text-slate-800">Laporan Keuangan</h2>
-                      <input type="month" id="filter-month-laporan" onchange="filterLaporanBulan()" 
-    class="px-4 py-2 bg-white border border-slate-200 rounded-xl text-xs font-bold outline-none focus:ring-2 focus:ring-indigo-500 text-indigo-600">
-                  </div>
+                  <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+    <h2 class="text-2xl font-black uppercase text-slate-800">Laporan Keuangan</h2>
+    <div class="flex items-center gap-2 bg-white p-2 rounded-2xl border border-slate-200 shadow-sm">
+        <div class="flex flex-col">
+            <label class="text-[8px] font-bold text-slate-400 px-1">DARI</label>
+            <input type="date" id="lap-start" onchange="filterLaporanRange()" class="px-1 text-xs font-bold text-indigo-600 outline-none">
+        </div>
+        <span class="text-[9px] font-black text-slate-300 mt-3">/</span>
+        <div class="flex flex-col">
+            <label class="text-[8px] font-bold text-slate-400 px-1">SAMPAI</label>
+            <input type="date" id="lap-end" onchange="filterLaporanRange()" class="px-1 text-xs font-bold text-indigo-600 outline-none">
+        </div>
+        <button onclick="resetFilterLaporan()" class="ml-2 p-2 text-slate-300 hover:text-red-500 transition-colors">
+            <i data-lucide="refresh-ccw" class="w-4 h-4"></i>
+        </button>
+    </div>
+</div>
                   <div class="grid grid-cols-2 md:grid-cols-4 gap-4" id="laporan-stats">
                       <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm"><p class="text-[9px] font-black text-slate-400 mb-1 uppercase">Total Nota</p><h3 id="stat-nota" class="text-xl font-black">0</h3></div>
                       <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm"><p class="text-[9px] font-black text-slate-400 mb-1 uppercase">QTY Terjual</p><h3 id="stat-qty" class="text-xl font-black">0</h3></div>
@@ -479,78 +494,178 @@
 
       <script>
       // 1. ALAMAT KONEKSI & AUTH (FIXED)
-      const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwHRWWUBK2it7HV3AAdPP1WIuexje09oiwPQvQw5u6L7IFBxH0Ga3_BVxYCtUOmU8w_Vw/exec";
+      const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxvjI9dB_7h0IUXf8lYnSJgYy0uUDdgTL89h03VmTyAeqFgy5nZfgO-Fbozx5IyDSTLTQ/exec";
 
-        async function prosesLogin() {
-    const userIn = document.getElementById('login-user').value.trim().toUpperCase();
-    const passIn = document.getElementById('login-pass').value;
+       async function prosesLogin() {
+    const userIn = document.getElementById('login-user').value.trim();
+    const passIn = document.getElementById('login-pass').value.trim();
 
-    if (!userIn || !passIn) {
-        return Swal.fire('Error', 'Username & Password wajib diisi', 'error');
-    }
+    if (!userIn || !passIn) return Swal.fire('Error', 'Username & Password wajib diisi', 'error');
 
-    Swal.fire({
-        title: 'Sinkronisasi User...',
-        allowOutsideClick: false,
-        didOpen: () => Swal.showLoading()
-    });
+    Swal.fire({ title: 'Memverifikasi...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); }});
 
-    // 🔥 LOAD USERS DULU
-    try {
-        const res = await fetch(WEB_APP_URL, {
-            method: "POST",
-            body: JSON.stringify({
-                action: "getData",
-                targetSheet: "USERS"
-            })
-        });
-
-        const result = await res.json();
-
+    fetch(WEB_APP_URL, {
+        method: "POST",
+        body: JSON.stringify({ action: "login", username: userIn, password: passIn })
+    })
+    .then(res => res.json())
+    .then(async (result) => {
         if (result.status === "success") {
-            users = result.data.map((row, i) => ({
-                id: i + 1,
-                username: String(row[0]).trim(),
-                fullname: row[1],
-                role: row[2],
-                pass: String(row[3]).trim(),
-                cabang: row[4]
-            }));
+            const userValid = result.user;
+            
+            // Simpan data user ke sesi sekarang
+            loggedInUser.fullname = userValid.fullname;
+            loggedInUser.role = userValid.role;
+            loggedInUser.cabang = (userValid.role === 'OWNER') ? "ALL" : String(userValid.cabang).trim();
+
+            // 1. Jalankan fungsi permission & load data di background
+            checkPermissions();
+            await loadDataFromCloud();
+
+            // 2. Tampilkan notifikasi BERHASIL dulu
+            Swal.fire({
+                icon: 'success',
+                title: 'Login Berhasil',
+                text: `Selamat bekerja di Cabang ${userValid.cabang}`,
+                timer: 1500,
+                showConfirmButton: false
+            }).then(() => {
+                // 3. SETELAH notifikasi selesai/hilang, baru buka dashboard
+                document.getElementById('login-overlay').classList.add('hidden');
+                document.getElementById('main-dashboard').classList.remove('hidden');
+            });
+
+        } else {
+             Swal.fire('Gagal', result.message || 'Login Gagal', 'error');
         }
-    } catch (e) {
-        Swal.fire('Error', 'Gagal sinkron user', 'error');
-        return;
-    }
-
-    // ✅ BARU CEK LOGIN
-    const userValid = users.find(u =>
-        u.username.toUpperCase() === userIn &&
-        String(u.pass) === String(passIn)
-    );
-
-    if (!userValid) {
-        return Swal.fire('Gagal', 'Username atau Password salah', 'error');
-    }
-
-    // ✅ SET SESSION LOGIN
-    loggedInUser.fullname = userValid.fullname;
-    loggedInUser.role = userValid.role;
-    loggedInUser.cabang = userValid.role === 'OWNER' ? 'ALL' : userValid.cabang;
-
-    // 🔄 LOAD SEMUA DATA SETELAH LOGIN
-    await loadDataFromCloud();
-
-    Swal.fire({
-        icon: 'success',
-        title: 'Login Berhasil',
-        timer: 1200,
-        showConfirmButton: false
-    }).then(() => {
-        document.getElementById('login-overlay').classList.add('hidden');
-        document.getElementById('main-dashboard').classList.remove('hidden');
+    })
+    .catch(err => {
+        console.error(err);
+        Swal.fire('Error', 'Gagal menghubungi server. Cek koneksi internet.', 'error');
     });
 }
- // Penutup UTAMA Async Function loadDataFromCloud
+
+      // LOGIN DENGAN IDENTITAS CABANG
+      let loggedInUser = { fullname: "", role: "", cabang: "" };
+
+function formatTglIndo(tglRaw) {
+    if (!tglRaw || tglRaw === "-" || tglRaw === "") return "-";
+    const d = new Date(tglRaw);
+    if (isNaN(d.getTime())) return tglRaw;
+    const tgl = String(d.getDate()).padStart(2, '0');
+    const bln = String(d.getMonth() + 1).padStart(2, '0');
+    const thn = d.getFullYear();
+    return `${tgl}/${bln}/${thn}`;
+}
+        function getTodayISODate() {
+    const d = new Date();
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+}
+        // 2. VARIABEL DATA UTAMA
+      let users = [];
+      let products = [];
+      let services = [];
+      let cart = []; 
+      let salesData = [];
+      let mutations = [];
+
+      // 2. FUNGSI UNTUK MENARIK DATA DARI SPREADSHEET (BIAR SINKRON)
+      async function loadDataFromCloud() {
+    Swal.fire({ 
+        title: 'Sinkronisasi Cloud...', 
+        allowOutsideClick: false, 
+        didOpen: () => { Swal.showLoading(); }
+    });
+
+    const sheets = ["SERVICE", "STOK", "USERS", "LAPORAN", "MUTASI"]; 
+
+    for (let sName of sheets) {
+        try {
+            const response = await fetch(WEB_APP_URL, {
+                method: "POST",
+                body: JSON.stringify({ action: "getData", targetSheet: sName })
+            });
+            const result = await response.json();
+
+            if (result.status === "success") {
+                const rawData = result.data;
+                const userCabang = loggedInUser.cabang.toUpperCase();
+                const isOwner = (loggedInUser.role === 'OWNER' || loggedInUser.cabang === 'ALL');
+
+                // FILTER SERVICE (Cabang di index 16)
+                if (sName === "SERVICE") {
+                    services = rawData.filter(row => {
+                        if (isOwner) return true;
+    // Ambil data cabang dari kolom index 16 (Kolom Q)
+    const cabangDiSheet = String(row[16] || "").trim().toUpperCase();
+    const cabangLogin = userCabang.trim().toUpperCase();
+    return cabangDiSheet === cabangLogin;
+}).map(row => ({
+                        id: Date.now() + Math.random(),
+                        tglM: formatTglIndo(row[0]), tglA: formatTglIndo(row[1]), nota: row[2], nama: row[3], wa: row[4],
+                        unit: row[5], rusak: row[6], jasa: row[7], part: row[8],
+                        total: row[9], garansi: row[10], teknisi: row[11], admin: row[12],
+                        status: row[13], bayar: row[14], cetak: row[15], cabang: row[16]
+                    }));
+                } 
+
+                // FILTER STOK & KATALOG KASIR (Cabang di index 12)
+                else if (sName === "STOK") {
+                    products = rawData.filter(row => {
+                        if (isOwner) return true;
+    // Kolom M adalah index 12
+    return String(row[12] || "").trim().toUpperCase() === userCabang.trim().toUpperCase();
+}).map(row => ({
+                        tgl: formatTglIndo(row[0]), nama: row[1], stok: row[2], keluar: row[3],
+                        rusak: row[4], retur: row[5], kepService: row[6],
+                        nota: row[7], admin: row[8], ket: row[9],
+                        modal: row[10], price: row[11], cabang: row[12],
+                        id: Math.random()
+                    }));
+                } 
+
+                // USERS (Tanpa filter untuk login)
+                else if (sName === "USERS") {
+                    users = rawData.map((row, idx) => ({
+                        id: idx + 1, username: String(row[0]).trim(), fullname: row[1], 
+                        role: row[2], pass: String(row[3]).trim(), cabang: row[4]
+                    }));
+                }
+
+                // FILTER LAPORAN (Cabang di index 8)
+                else if (sName === "LAPORAN") {
+                    salesData = rawData.filter(row => {
+                        if (isOwner) return true;
+                        return String(row[8]).toUpperCase() === userCabang;
+                    }).map(row => ({
+                        tgl: formatTglIndo(row[0]), nota: row[1], item: row[2], qty: row[3], harga: row[4],
+                        garansi: row[5], modal: row[6], laba: row[7], cabang: row[8]
+                    }));
+                }
+
+                // FILTER MUTASI (Asal Cabang di index 3, Tujuan di index 4)
+                else if (sName === "MUTASI") {
+                    mutations = rawData.filter(row => {
+                        if (isOwner) return true;
+                        const asal = String(row[3]).toUpperCase();
+                        const tujuan = String(row[4]).toUpperCase();
+                        return asal === userCabang || tujuan === userCabang;
+                    }).map(row => ({
+                        tglK: formatTglIndo(row[0]), barang: row[1], jml: row[2], asal: row[3], tujuan: row[4],
+                        admM: row[5], admT: row[6], status: row[7], ket: row[8], tglT: formatTglIndo(row[9]),
+                        cabang: row[10], modal: row[11], price: row[12], id: Math.random()
+                    }));
+                }
+            }
+        } catch (e) { console.error("Gagal sinkron " + sName, e); }
+    }
+    Swal.close();      
+    renderAll();        
+    checkPermissions(); 
+} // Penutup UTAMA Async Function loadDataFromCloud
 
       // --- MESIN PENGIRIM DATA KE CLOUD ---
       async function sendToCloud(target, rowData) {
@@ -730,12 +845,10 @@
     const fSrv = document.getElementById('filter-date-service');
     const fStk = document.getElementById('filter-date-stok');
     const fMut = document.getElementById('filter-date-mutasi');
-    const fLap = document.getElementById('filter-month-laporan');
 
     if (fSrv && !fSrv.value) fSrv.value = today;
     if (fStk && !fStk.value) fStk.value = today;
     if (fMut && !fMut.value) fMut.value = today;
-    if (fLap && !fLap.value) fLap.value = today.substring(0, 7);
 
     // --- 2. CEK PERMISSION & RENDER TABEL ---
     checkPermissions();
@@ -810,7 +923,22 @@
     filterService();
     filterStokTanggal();
     filterMutasiTanggal();
-    filterLaporanBulan();
+
+    // UPDATE: Set Default Tanggal Laporan (Awal Bulan - Hari Ini)
+    const dateNow = new Date();
+    const y = dateNow.getFullYear();
+    const m = String(dateNow.getMonth() + 1).padStart(2, '0');
+    const d = String(dateNow.getDate()).padStart(2, '0');
+
+    const inputStart = document.getElementById('lap-start');
+    const inputEnd = document.getElementById('lap-end');
+    
+    if(inputStart && inputEnd) {
+        inputStart.value = `${y}-${m}-01`; 
+        inputEnd.value = `${y}-${m}-${d}`; 
+        // Panggil filter RANGE yang sudah ada, bukan filter Bulan (yang bikin error)
+        filterLaporanRange(); 
+    }
 
     updateLaporanUI(); 
     lucide.createIcons();
@@ -1090,7 +1218,7 @@
         // A:TglK, B:Barang, C:Jml, D:Asal, E:Tujuan, F:AdmM, G:AdmT, H:Status, I:Ket, J:TglT, K:Cabang, L:Modal, M:Jual
         const rowData = [
             tgl, barang, qty, asal, tujuan, admin, "-", "DIKIRIM", "-", "-", 
-            asal,               // K: Cabang (Sesuai urutan kamu)
+            asal,                // K: Cabang (Sesuai urutan kamu)
             (p ? p.modal : 0),  // L: Modal
             (p ? p.price : 0)   // M: Jual
         ];
@@ -1361,24 +1489,18 @@
 
       window.onload = async () => { 
     // 1. Tarik data dari cloud dulu (agar data USERS siap untuk proses login)
-    try {
-        await loadDataFromCloud(); 
-    } catch (e) {
-        console.error("Gagal sinkronisasi awal:", e);
-    }
-
+    // REVISI: Karena sekarang login server-side, kita tidak tarik data di awal
+    // Data ditarik SETELAH login berhasil.
+    
     // 2. Jalankan fungsi keranjang awal
     updateCartUI(); 
 
-    // 3. Render ulang untuk memastikan semua data muncul di tabel
-    renderAll();
-
-    // 4. Inisialisasi ikon Lucide agar gambar smartphone, lock, dll muncul
+    // 3. Inisialisasi ikon Lucide
     if (typeof lucide !== 'undefined') {
         lucide.createIcons();
     }
 
-    // 5. Otomatis fokus ke kotak username agar admin tinggal ketik
+    // 4. Fokus ke input login
     const loginInput = document.getElementById('login-user');
     if (loginInput) {
         loginInput.focus();
@@ -1482,15 +1604,68 @@ function filterMutasiTanggal() {
     });
 }
 
-function filterLaporanBulan() {
-    const monthFilter = document.getElementById('filter-month-laporan').value; 
+// FUNGSI BARU UNTUK FILTER RANGE TANGGAL (Poin 5)
+function filterLaporanRange() {
+    const startVal = document.getElementById('lap-start').value; 
+    const endVal = document.getElementById('lap-end').value;
+    
+    // Jika salah satu tanggal belum diisi, jangan filter dulu
+    if (!startVal || !endVal) return;
+
+    // Ubah input date ke format Date Object untuk perbandingan yang akurat
+    const startDate = new Date(startVal);
+    startDate.setHours(0,0,0,0);
+    
+    const endDate = new Date(endVal);
+    endDate.setHours(23,59,59,999);
+
     const tableRows = document.querySelectorAll('#sales-detail-table tr');
-    if(!monthFilter) { renderAll(); return; }
-    const [year, month] = monthFilter.split('-');
-    const filterString = `${month}/${year}`; 
+    
+    // Variabel penampung hitungan statistik yang baru
+    let notaUnik = new Set();
+    let totalQty = 0, totalKotor = 0, totalLaba = 0;
+
     tableRows.forEach(row => {
-        row.style.display = row.cells[0].innerText.includes(filterString) ? "" : "none";
+        // Ambil tgl dari kolom pertama tabel (Format: DD/MM/YYYY)
+        const tglRowStr = row.cells[0].innerText; 
+        const parts = tglRowStr.split('/');
+        const rowDate = new Date(parts[2], parts[1] - 1, parts[0]);
+
+        // Cek apakah tanggal di baris tabel masuk dalam range yang dipilih
+        if (rowDate >= startDate && rowDate <= endDate) {
+            row.style.display = "";
+            
+            // Ambil data dari kolom untuk hitung statistik baru
+            notaUnik.add(row.cells[1].innerText); // Kolom Nota
+            totalQty += parseInt(row.cells[3].innerText) || 0; // Kolom QTY
+            totalKotor += parseInt(row.cells[4].innerText.replace(/[^0-9]/g, "")) || 0; // Kolom Jual
+            totalLaba += parseInt(row.cells[7].innerText.replace(/[^0-9]/g, "")) || 0; // Kolom Laba
+        } else {
+            row.style.display = "none";
+        }
     });
+
+    // Update Kotak Statistik (Stats Box) di Dashboard
+    document.getElementById('stat-nota').innerText = notaUnik.size;
+    document.getElementById('stat-qty').innerText = totalQty;
+    document.getElementById('stat-kotor').innerText = "Rp " + totalKotor.toLocaleString('id-ID');
+    document.getElementById('stat-bersih').innerText = "Rp " + totalLaba.toLocaleString('id-ID');
+}
+
+// Fungsi untuk meriset filter dan menampilkan semua data kembali
+function resetFilterLaporan() {
+    document.getElementById('lap-start').value = "";
+    document.getElementById('lap-end').value = "";
+    
+    // Tampilkan semua baris kembali
+    const tableRows = document.querySelectorAll('#sales-detail-table tr');
+    tableRows.forEach(row => row.style.display = "");
+    
+    // Hitung ulang statistik total
+    updateLaporanUI(); 
+    
+    // Beri info ke user
+    Swal.fire({ toast: true, position: 'top-end', icon: 'info', title: 'Filter Reset', showConfirmButton: false, timer: 1000 });
 }
       // --- FUNGSI AMBIL HARGA JUAL OTOMATIS ---
 function updatePartPrice() {
@@ -1508,34 +1683,32 @@ function updatePartPrice() {
     }
 }  
     // --- MESIN PEMBUAT NOTA OTOMATIS BERURUTAN ---
+// --- MESIN PEMBUAT NOTA: CABANG + TANGGAL + JAM (Poin 2 - UPDATE) ---
 function generateNota(prefix) {
     const d = new Date();
-    // Menghasilkan YYMMDD (Contoh: 260106 untuk 6 Jan 2026)
+    
+    // 1. Ambil Inisial Cabang (AIM untuk Aimas, KOT untuk Kota)
+    let cabangInisial = "PST"; // Default Pusat
+    const userCabang = (loggedInUser.cabang || "").toUpperCase();
+    
+    if (userCabang.includes("AIMAS")) {
+        cabangInisial = "AIM";
+    } else if (userCabang.includes("KOTA")) {
+        cabangInisial = "KOT";
+    }
+
+    // 2. Format Tanggal: YYMMDD (Contoh: 260106)
     const datePart = d.getFullYear().toString().slice(-2) + 
                      String(d.getMonth() + 1).padStart(2, '0') + 
                      String(d.getDate()).padStart(2, '0');
     
-    let count = 1;
-    let existingData = [];
-    
-    // Pilih sumber data untuk hitung urutan
-    if (prefix === 'SRV') existingData = services;
-    if (prefix === 'INV') existingData = salesData;
-    if (prefix === 'STK') existingData = products; // Data Stok
-    if (prefix === 'MTS') existingData = mutations; // Data Mutasi
-    
-    // Cari nota hari ini yang kodenya sama
-    const todayNotes = existingData.filter(x => {
-        const notaStr = String(x.nota || "");
-        return notaStr.includes(`${prefix}-${datePart}`);
-    });
-    
-    if (todayNotes.length > 0) {
-        count = todayNotes.length + 1;
-    }
+    // 3. Format Jam: HHMMSS (Contoh: 140530)
+    const timePart = String(d.getHours()).padStart(2, '0') + 
+                     String(d.getMinutes()).padStart(2, '0') + 
+                     String(d.getSeconds()).padStart(2, '0');
 
-    // Hasil: PREFIX-YYMMDD-URUTAN (Contoh: SRV-260106-001)
-    return `${prefix}-${datePart}-${String(count).padStart(3, '0')}`;
+    // HASIL AKHIR: INV-AIM-260106-140530
+    return `${prefix}-${cabangInisial}-${datePart}-${timePart}`;
 }  
     // ==========================================
 // AWAL LOGIKA SCANNER (KAMERA & LASER)
@@ -1626,50 +1799,46 @@ function eksekusiScan(kodeBarcode) {
 // LOGIKA CETAK BARCODE BARANG
 // ==========================================
 function cetakBarcodeBarang(id) {
-    // 1. Cari data barangnya
     const p = products.find(x => x.id === id);
     if (!p) return;
 
-    // 2. Buat elemen canvas sementara untuk menggambar barcode
     const canvas = document.createElement("canvas");
     
-    // 3. Setting Barcode (Gunakan Nota karena lebih stabil/pendek)
+    // --- SETTINGAN BARCODE OPTIMAL UNTUK PRINTER THERMAL ---
     JsBarcode(canvas, p.nota, {
         format: "CODE128",
-        width: 2,           // Ketebalan garis
-        height: 40,         // Tinggi garis
+        width: 2,           // Lebar garis (2 adalah standar paling aman)
+        height: 45,         // Tinggi garis barcode (ditambah agar mudah scan)
         displayValue: true, // Munculkan teks nota di bawah
-        fontSize: 14,
-        lineColor: "#000"
+        fontSize: 14,       // Ukuran font nota
+        lineColor: "#000",
+        margin: 10          // Jeda putih di pinggir agar tidak terpotong kertas
     });
 
     const barcodeDataUrl = canvas.toDataURL("image/png");
-
-    // 4. Siapkan area cetak (Sesuai printer thermal 58mm)
     const area = document.getElementById('print-area');
+
+    // Desain Label agar pas di Printer Thermal 58mm (Stiker/Kertas)
     area.innerHTML = `
-        <div style="width: 58mm; padding: 10px; text-align: center; color: black; background: white; font-family: 'Courier New', Courier, monospace;">
-            <div style="font-size: 11px; font-weight: bold; text-transform: uppercase; margin-bottom: 5px; border-bottom: 1px solid #000; padding-bottom: 3px;">
-                BEDAH HP - ${loggedInUser.cabang}
+        <div style="width: 58mm; padding: 5px; text-align: center; color: black; background: white; font-family: 'Courier New', Courier, monospace;">
+            <div style="font-size: 10px; font-weight: 800; text-transform: uppercase; margin-bottom: 4px; border-bottom: 1px solid #000; padding-bottom: 2px;">
+                ${loggedInUser.cabang === 'ALL' ? 'BEDAH HANDPHONE' : 'BEDAH HP - ' + loggedInUser.cabang}
             </div>
-            <div style="font-size: 10px; margin-bottom: 5px; font-weight: bold;">${p.nama}</div>
-            <img src="${barcodeDataUrl}" style="width: 100%; max-width: 150px;">
-            <div style="font-size: 12px; font-weight: 900; margin-top: 5px; border-top: 1px dashed #000; padding-top: 5px;">
+            <div style="font-size: 9px; font-weight: bold; margin-bottom: 5px; line-height: 1;">${p.nama}</div>
+            <img src="${barcodeDataUrl}" style="width: 100%; max-width: 160px; height: auto;">
+            <div style="font-size: 11px; font-weight: 900; margin-top: 4px; border-top: 1px dashed #000; padding-top: 4px;">
                 Rp ${Number(p.price).toLocaleString('id-ID')}
             </div>
         </div>
     `;
 
-    // 5. Eksekusi Print
     area.classList.remove('hidden');
     setTimeout(() => {
         window.print();
         area.classList.add('hidden');
-        area.innerHTML = ''; // Bersihkan kembali
+        area.innerHTML = ''; 
     }, 500);
 }
     </script>
   </body>
   </html>
-
-
