@@ -196,9 +196,9 @@
                 <button onclick="switchTab('mutasi')" id="tab-mutasi" class="nav-link">
                     <i data-lucide="refresh-cw" class="w-4 h-4"></i> Mutasi
                 </button>
-                <button onclick="switchTab('laporan')" id="tab-laporan" class="nav-link">
-                    <i data-lucide="bar-chart-3" class="w-4 h-4"></i> Laporan
-                </button>
+                <button onclick="switchTab('laporan'); loadLaporanRealtime()" id="tab-laporan" class="nav-link">
+    <i data-lucide="bar-chart-3" class="w-4 h-4"></i> Laporan
+</button>
                 
                 <button onclick="switchTab('users')" id="tab-users" class="nav-link hidden">
                     <i data-lucide="users" class="w-4 h-4"></i> Management User
@@ -618,7 +618,7 @@
 
     <script>
     // 1. URL APPS SCRIPT (Sesuai kode awalmu)
-    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxvjI9dB_7h0IUXf8lYnSJgYy0uUDdgTL89h03VmTyAeqFgy5nZfgO-Fbozx5IyDSTLTQ/exec";
+    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbx4Ukn-WlnnJ6A47HMkUR6UuhP1r3UdbWmI8CK45s39T5TI0SCWu4M9GPOneiHClvziZw/exec";
 
     // 2. DARK MODE LOGIC
     function toggleTheme() {
@@ -1359,24 +1359,33 @@ Swal.fire({
         const nota = generateNota('SRV');
         const tgl = new Date().toISOString();
 
-        // --- LOGIKA STOK DIMULAI ---
+        // --- LOGIKA STOK (DIPERBAIKI) ---
         if (partName !== "") {
             const itemInStok = products.find(p => p.nama.toUpperCase() === partName);
             
             if (itemInStok) {
                 if (itemInStok.stok > 0) {
-                    // 1. Kurangi angka stok di tampilan (biar berkurang visualnya)
+                    // 1. Kurangi angka stok di tampilan
                     adjustStock(itemInStok.id, 1, 'kep_service');
 
-                    // 2. Kirim Data ke Cloud (Google Sheet)
+                    // 2. Kirim Data ke Cloud (Sheet STOK) - VERSI LENGKAP 13 KOLOM
+                    // SEBELUMNYA ERROR DISINI: Kurang modal & jual, jadi data geser.
                     const rowDataStok = [
-                        formatTglIndo(tgl), partName, -1, 0, 0, 0, 1, 
-                        nota, loggedInUser.fullname, "DIPAKAI SERVICE"
+                        formatTglIndo(tgl),     // A
+                        partName,               // B
+                        -1,                     // C (Stok berkurang visual dihitung via query nanti, tapi di log ditulis -1 atau 0 tergantung preferensi, di sini kita tulis -1 di kolom stok agar saldo berkurang jika pakai rumus sum)
+                        0, 0, 0, 1,             // D, E, F, G (Kep Service = 1)
+                        nota,                   // H
+                        loggedInUser.fullname,  // I
+                        "DIPAKAI SERVICE",      // J
+                        itemInStok.modal,       // K (INI TADI HILANG)
+                        itemInStok.price        // L (INI TADI HILANG)
                     ];
+                    // Cabang (M) akan otomatis ditambah oleh fungsi sendToCloud
+                    
                     sendToCloud("STOK", rowDataStok);
 
-                    // 3. (INI YANG BARU) Catat Transaksi ini di Memori HP
-                    // Supaya saat di-Cancel, sistem langsung tahu kalau ada part yang dipakai.
+                    // 3. Catat Transaksi di Memori HP
                     products.push({
                         id: Math.random(),      
                         tgl: formatTglIndo(tgl),
@@ -1384,9 +1393,9 @@ Swal.fire({
                         stok: -1, 
                         keluar: 0, rusak: 0, retur: 0,
                         kepService: 1,          
-                        nota: nota,             // KUNCI UTAMA (Link ke Nota Service)
+                        nota: nota,             
                         admin: loggedInUser.fullname,
-                        ket: "DIPAKAI SERVICE", // Penanda Tambahan
+                        ket: "DIPAKAI SERVICE", 
                         modal: itemInStok.modal,
                         price: itemInStok.price,
                         cabang: loggedInUser.cabang
@@ -2107,6 +2116,104 @@ Swal.fire({
             area.innerHTML = ''; 
         }, 500);
     }
-    </script>
+  // --- [MULAI] SCRIPT TAMBAHAN UNTUK PERBAIKAN LAPORAN ---
+    function loadLaporanRealtime() {
+        // Tampilkan status loading di tabel
+        const tbody = document.getElementById('sales-detail-table');
+        if(tbody) tbody.innerHTML = '<tr><td colspan="9" class="text-center p-4 text-indigo-600 font-bold">Sedang menghitung ulang laba & stok...</td></tr>';
+
+        // Panggil fungsi khusus di Code.gs
+        google.script.run.withSuccessHandler(renderLaporanRealtime).getRiwayatTransaksi();
+    }
+
+    // --- SCRIPT LAPORAN FINAL (Gunakan yang ini saja) ---
+async function loadLaporanRealtime() {
+    const tbody = document.getElementById('sales-detail-table');
+    
+    // Tampilkan Loading
+    if(tbody) tbody.innerHTML = '<tr><td colspan="9" class="text-center p-4 text-indigo-600 font-bold animate-pulse">Sedang mengambil data dari server...</td></tr>';
+
+    try {
+        // REQUEST KE SERVER GOOGLE
+        const response = await fetch(WEB_APP_URL, {
+            method: "POST",
+            body: JSON.stringify({ action: "getLaporan" })
+        });
+        
+        const result = await response.json();
+        
+        if (result.status === 'success') {
+            renderLaporanRealtime(result.data);
+        } else {
+            if(tbody) tbody.innerHTML = `<tr><td colspan="9" class="text-center p-4 text-red-500 font-bold">Gagal: ${result.message}</td></tr>`;
+        }
+
+    } catch (error) {
+        console.error(error);
+        if(tbody) tbody.innerHTML = '<tr><td colspan="9" class="text-center p-4 text-red-500 font-bold">Gagal menghubungi server. Pastikan Apps Script sudah di-Deploy ulang.</td></tr>';
+    }
+}
+
+function renderLaporanRealtime(data) {
+    const tbody = document.getElementById('sales-detail-table');
+    if(tbody) tbody.innerHTML = '';
+
+    // Variabel Hitung Dashboard
+    let totalNota = new Set();
+    let totalQty = 0;
+    let totalOmset = 0; 
+    let totalBersih = 0; 
+
+    // Cek User Login (Safety Check)
+    const userCabang = (typeof loggedInUser !== 'undefined' && loggedInUser.cabang) ? loggedInUser.cabang.toUpperCase() : "";
+    const isOwner = (typeof loggedInUser !== 'undefined' && String(loggedInUser.role).toUpperCase() === 'OWNER');
+
+    let htmlRows = "";
+    
+    if (!data || data.length === 0) {
+        htmlRows = '<tr><td colspan="9" class="text-center p-4 text-slate-400">Belum ada data transaksi.</td></tr>';
+    } else {
+        data.forEach(item => {
+            // Filter: Jika bukan Owner, hanya tampilkan data cabangnya
+            if (!isOwner && item.cabang !== userCabang) return;
+
+            // Pastikan data angka aman (konversi string ke angka)
+            const qty = Number(item.qty) || 0;
+            const jual = Number(item.jual) || 0;
+            const laba = Number(item.laba) || 0;
+            const modal = Number(item.modal) || 0;
+
+            // Hitung Dashboard
+            totalNota.add(item.nota);
+            totalQty += qty;
+            totalOmset += jual; 
+            totalBersih += laba;
+
+            // Render Baris Tabel
+            htmlRows += `
+            <tr class="border-b hover:bg-slate-50 text-sm">
+                <td class="p-3 text-slate-500">${item.tgl}</td>
+                <td class="p-3 font-bold text-indigo-600">${item.nota}</td>
+                <td class="p-3 uppercase font-bold text-slate-700">${item.nama}</td>
+                <td class="p-3 text-center font-bold">${qty}</td>
+                <td class="p-3 text-right">Rp ${jual.toLocaleString('id-ID')}</td>
+                <td class="p-3 uppercase text-[9px] font-black text-indigo-400 text-center">${item.garansi || '-'}</td>
+                <td class="p-3 text-right text-slate-400">Rp ${modal.toLocaleString('id-ID')}</td>
+                <td class="p-3 text-right font-black text-emerald-600">Rp ${laba.toLocaleString('id-ID')}</td>
+                <td class="p-3 text-center text-[9px] font-bold text-slate-400">${item.cabang}</td>
+            </tr>`;
+        });
+    }
+
+    tbody.innerHTML = htmlRows;
+
+    // Update Dashboard Cards
+    if(document.getElementById('stat-nota')) document.getElementById('stat-nota').innerText = totalNota.size;
+    if(document.getElementById('stat-qty')) document.getElementById('stat-qty').innerText = totalQty;
+    if(document.getElementById('stat-kotor')) document.getElementById('stat-kotor').innerText = "Rp " + totalOmset.toLocaleString('id-ID');
+    if(document.getElementById('stat-bersih')) document.getElementById('stat-bersih').innerText = "Rp " + totalBersih.toLocaleString('id-ID');
+}
+    // --- [SELESAI] SCRIPT TAMBAHAN ---  
+  </script>
 </body>
 </html>
