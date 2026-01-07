@@ -41,7 +41,7 @@
 
         /* Dark Mode Specific Component Overrides */
         body.dark-mode .bg-white { background-color: var(--bg-card) !important; color: var(--text-main) !important; border-color: var(--border-color) !important; }
-        body.dark-mode .bg-slate-50 { background-color: #111827 !important; border-color: var(--border-color) !important; }
+        body.dark-mode .bg-slate-50, body.dark-mode .bg-indigo-50 { background-color: #111827 !important; border-color: var(--border-color) !important; }
         body.dark-mode .text-slate-800, body.dark-mode .text-slate-700 { color: #f8fafc !important; }
         body.dark-mode .text-slate-400 { color: #94a3b8 !important; }
         body.dark-mode input, body.dark-mode select, body.dark-mode textarea { 
@@ -80,7 +80,7 @@
         .table-wrapper::-webkit-scrollbar { height: 6px; }
         .table-wrapper::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
 
-        table { width: 100%; border-collapse: collapse; min-width: 1200px; }
+        table { width: 100%; border-collapse: collapse; min-width: 1300px; }
         th { 
             background: #f8fafc; padding: 16px; font-size: 10px; 
             text-transform: uppercase; color: #64748b; 
@@ -272,6 +272,11 @@
                     <h2 class="text-2xl font-black uppercase text-slate-800">Monitoring Service</h2>
                     
                     <div class="flex flex-col md:flex-row flex-wrap gap-2 w-full md:w-auto">
+                        <select id="filter-owner-service" onchange="filterService()" class="hidden owner-filter px-4 py-2 bg-indigo-50 border border-indigo-200 rounded-xl text-[10px] font-bold uppercase text-indigo-800 outline-none">
+                            <option value="SEMUA">SEMUA CABANG</option>
+                            <option value="AIMAS">AIMAS</option>
+                            <option value="KOTA">KOTA</option>
+                        </select>
                         <div class="relative flex-1 md:w-64">
                             <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400"></i>
                             <input type="text" id="search-service" onkeyup="filterService()" placeholder="Cari Nota / Nama..." 
@@ -298,7 +303,25 @@
                     <table>
                         <thead>
                             <tr>
-                                <th>Tgl Masuk</th><th>Tgl Ambil</th><th>Nota</th><th>Pelanggan</th><th>WA</th><th>Unit</th><th>Keluhan</th><th>Jasa</th><th>Part</th><th class="bg-indigo-50/50">Total</th><th>Garansi</th><th>Teknisi</th><th>Admin</th><th>Status</th><th>Bayar</th><th>Cetak</th>
+                                <th>Tgl Masuk</th>
+                                <th>Tgl Ambil</th>
+                                <th>Nota</th>
+                                <th>Pelanggan</th>
+                                <th>WA</th>
+                                <th>Unit</th>
+                                <th>Keluhan</th>
+                                <th>Jasa</th>
+                                <th>Part</th>
+                                <th class="text-green-600">Diskon</th>
+                                <th class="text-blue-600">DP</th>
+                                <th class="bg-indigo-50/50">Total</th>
+                                <th>Garansi</th>
+                                <th>Teknisi</th>
+                                <th>Admin</th>
+                                <th>Status</th>
+                                <th>Bayar</th>
+                                <th>Cetak</th>
+                                <th>Cabang</th>
                             </tr>
                         </thead>
                         <tbody id="service-table"></tbody>
@@ -310,6 +333,11 @@
                 <div class="flex flex-col md:flex-row justify-between gap-4">
                     <h2 class="text-2xl font-black uppercase text-slate-800">Manajemen Stok</h2>
                     <div class="flex flex-col md:flex-row gap-2">
+                        <select id="filter-owner-stok" onchange="filterStok()" class="hidden owner-filter px-4 py-2 bg-indigo-50 border border-indigo-200 rounded-xl text-[10px] font-bold uppercase text-indigo-800 outline-none">
+                            <option value="SEMUA">SEMUA CABANG</option>
+                            <option value="AIMAS">AIMAS</option>
+                            <option value="KOTA">KOTA</option>
+                        </select>
                         <input type="text" id="search-stok" onkeyup="filterStok()" placeholder="Cari stok..." class="p-2.5 border rounded-xl text-xs w-full md:w-64 outline-none focus:border-indigo-500 bg-white">
                         <input type="date" id="filter-date-stok" onchange="filterStokTanggal()" 
                         class="px-4 py-2 bg-white border border-slate-200 rounded-xl text-xs font-bold outline-none focus:ring-2 focus:ring-indigo-500 text-indigo-600 transition-all">
@@ -320,7 +348,7 @@
                     <table>
                         <thead>
                             <tr>
-                                <th>Tgl</th><th>Nama Barang</th><th class="text-center">Stok</th><th class="text-center">Keluar</th><th class="text-center">Rusak</th><th class="text-center">Retur</th><th class="text-center text-indigo-600">Service</th><th>Nota</th><th>Admin</th><th class="text-center">Aksi</th>
+                                <th>Tgl</th><th>Nama Barang</th><th class="text-center">Stok</th><th class="text-center">Keluar</th><th class="text-center">Rusak</th><th class="text-center">Retur</th><th class="text-center text-indigo-600">Service</th><th>Nota</th><th>Harga</th><th>Cabang</th><th class="text-center">Aksi</th>
                             </tr>
                         </thead>
                         <tbody id="stok-table"></tbody>
@@ -333,6 +361,11 @@
                     <h2 class="text-2xl font-black uppercase text-slate-800">Mutasi Barang</h2>
                     
                     <div class="flex items-center gap-3 w-full md:w-auto">
+                        <select id="filter-owner-mutasi" onchange="filterMutasiTanggal()" class="hidden owner-filter px-4 py-2 bg-indigo-50 border border-indigo-200 rounded-xl text-[10px] font-bold uppercase text-indigo-800 outline-none">
+                            <option value="SEMUA">SEMUA CABANG</option>
+                            <option value="AIMAS">AIMAS</option>
+                            <option value="KOTA">KOTA</option>
+                        </select>
                         <div class="flex items-center gap-2 bg-white px-3 py-1.5 rounded-xl border border-slate-200">
                             <span class="text-[9px] font-black text-slate-400 uppercase">Filter:</span>
                             <input type="date" id="filter-date-mutasi" onchange="filterMutasiTanggal()" 
@@ -360,19 +393,26 @@
             <div id="sec-laporan" class="hidden space-y-6">
                 <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                     <h2 class="text-2xl font-black uppercase text-slate-800">Laporan Keuangan</h2>
-                    <div class="flex items-center gap-2 bg-white p-2 rounded-2xl border border-slate-200 shadow-sm">
-                        <div class="flex flex-col">
-                            <label class="text-[8px] font-bold text-slate-400 px-1">DARI</label>
-                            <input type="date" id="lap-start" onchange="filterLaporanRange()" class="px-1 text-xs font-bold text-indigo-600 outline-none">
+                    <div class="flex gap-2">
+                        <select id="filter-owner-laporan" onchange="filterLaporanRange()" class="hidden owner-filter px-4 py-2 bg-indigo-50 border border-indigo-200 rounded-xl text-[10px] font-bold uppercase text-indigo-800 outline-none">
+                            <option value="SEMUA">SEMUA CABANG</option>
+                            <option value="AIMAS">AIMAS</option>
+                            <option value="KOTA">KOTA</option>
+                        </select>
+                        <div class="flex items-center gap-2 bg-white p-2 rounded-2xl border border-slate-200 shadow-sm">
+                            <div class="flex flex-col">
+                                <label class="text-[8px] font-bold text-slate-400 px-1">DARI</label>
+                                <input type="date" id="lap-start" onchange="filterLaporanRange()" class="px-1 text-xs font-bold text-indigo-600 outline-none">
+                            </div>
+                            <span class="text-[9px] font-black text-slate-300 mt-3">/</span>
+                            <div class="flex flex-col">
+                                <label class="text-[8px] font-bold text-slate-400 px-1">SAMPAI</label>
+                                <input type="date" id="lap-end" onchange="filterLaporanRange()" class="px-1 text-xs font-bold text-indigo-600 outline-none">
+                            </div>
+                            <button onclick="resetFilterLaporan()" class="ml-2 p-2 text-slate-300 hover:text-red-500 transition-colors">
+                                <i data-lucide="refresh-ccw" class="w-4 h-4"></i>
+                            </button>
                         </div>
-                        <span class="text-[9px] font-black text-slate-300 mt-3">/</span>
-                        <div class="flex flex-col">
-                            <label class="text-[8px] font-bold text-slate-400 px-1">SAMPAI</label>
-                            <input type="date" id="lap-end" onchange="filterLaporanRange()" class="px-1 text-xs font-bold text-indigo-600 outline-none">
-                        </div>
-                        <button onclick="resetFilterLaporan()" class="ml-2 p-2 text-slate-300 hover:text-red-500 transition-colors">
-                            <i data-lucide="refresh-ccw" class="w-4 h-4"></i>
-                        </button>
                     </div>
                 </div>
                 <div class="grid grid-cols-2 md:grid-cols-4 gap-4" id="laporan-stats">
@@ -385,7 +425,7 @@
                     <table>
                         <thead>
                             <tr>
-                                <th>Tanggal</th><th>Nota</th><th>Item</th><th class="text-center">QTY</th><th>Harga Jual</th><th>Garansi</th><th>Modal</th><th>Laba</th>
+                                <th>Tanggal</th><th>Nota</th><th>Item</th><th class="text-center">QTY</th><th>Harga Jual</th><th>Garansi</th><th>Modal</th><th>Laba</th><th>Cabang</th>
                             </tr>
                         </thead>
                         <tbody id="sales-detail-table"></tbody>
@@ -483,11 +523,21 @@
                     <div class="grid grid-cols-2 gap-2">
                         <div>
                             <label class="block text-[9px] mb-1 text-slate-400">BIAYA PART</label>
-                            <input type="text" id="in-srv-part" onkeyup="formatRibuan(this)" placeholder="0" class="w-full p-4 border rounded-2xl bg-slate-50 outline-none font-black text-indigo-600">
+                            <input type="text" id="in-srv-part" onkeyup="formatRibuan(this)" placeholder="0" class="w-full p-4 border rounded-2xl bg-slate-200 outline-none font-black text-indigo-600 cursor-not-allowed"readonly>
                         </div>
                         <div>
                             <label class="block text-[9px] mb-1 text-slate-400">BIAYA JASA</label>
                             <input type="text" id="in-srv-jasa" onkeyup="formatRibuan(this)" placeholder="0" class="w-full p-4 border rounded-2xl bg-slate-50 outline-none focus:border-indigo-500">
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-2 bg-indigo-50 p-2 rounded-xl">
+                        <div>
+                            <label class="block text-[9px] mb-1 text-indigo-500 font-bold">DISKON (POTONGAN)</label>
+                            <input type="text" id="in-srv-diskon" onkeyup="formatRibuan(this)" placeholder="0" class="w-full p-3 border border-indigo-200 rounded-xl bg-white outline-none text-green-600 font-bold">
+                        </div>
+                        <div>
+                            <label class="block text-[9px] mb-1 text-indigo-500 font-bold">DP (UANG MUKA)</label>
+                            <input type="text" id="in-srv-dp" onkeyup="formatRibuan(this)" placeholder="0" class="w-full p-3 border border-indigo-200 rounded-xl bg-white outline-none text-blue-600 font-bold">
                         </div>
                     </div>
                     <div>
@@ -600,7 +650,7 @@
                 
                 loggedInUser.fullname = userValid.fullname;
                 loggedInUser.role = userValid.role;
-                loggedInUser.cabang = (userValid.role === 'OWNER') ? "ALL" : String(userValid.cabang).trim();
+                loggedInUser.cabang = (String(userValid.role).toUpperCase() === 'OWNER') ? "ALL" : String(userValid.cabang).trim();
 
                 // 1. Cek Permission & Load Data
                 checkPermissions();
@@ -674,20 +724,22 @@
                 if (result.status === "success") {
                     const rawData = result.data;
                     const userCabang = loggedInUser.cabang.toUpperCase();
-                    const isOwner = (loggedInUser.role === 'OWNER' || loggedInUser.cabang === 'ALL');
+                    const isOwner = (String(loggedInUser.role).toUpperCase() === 'OWNER' || loggedInUser.cabang === 'ALL');
 
                     if (sName === "SERVICE") {
                         services = rawData.filter(row => {
                             if (isOwner) return true;
-                            const cabangDiSheet = String(row[16] || "").trim().toUpperCase();
+                            // Index 18 because we added 2 columns
+                            const cabangDiSheet = String(row[18] || "").trim().toUpperCase();
                             const cabangLogin = userCabang.trim().toUpperCase();
                             return cabangDiSheet === cabangLogin;
                         }).map(row => ({
                             id: Date.now() + Math.random(),
                             tglM: formatTglIndo(row[0]), tglA: formatTglIndo(row[1]), nota: row[2], nama: row[3], wa: row[4],
                             unit: row[5], rusak: row[6], jasa: row[7], part: row[8],
-                            total: row[9], garansi: row[10], teknisi: row[11], admin: row[12],
-                            status: row[13], bayar: row[14], cetak: row[15], cabang: row[16]
+                            diskon: row[9], dp: row[10], // MAPPING BARU
+                            total: row[11], garansi: row[12], teknisi: row[13], admin: row[14],
+                            status: row[15], bayar: row[16], cetak: row[17], cabang: String(row[18]).toUpperCase()
                         }));
                     } 
                     else if (sName === "STOK") {
@@ -698,7 +750,7 @@
                             tgl: formatTglIndo(row[0]), nama: row[1], stok: row[2], keluar: row[3],
                             rusak: row[4], retur: row[5], kepService: row[6],
                             nota: row[7], admin: row[8], ket: row[9],
-                            modal: row[10], price: row[11], cabang: row[12],
+                            modal: row[10], price: row[11], cabang: String(row[12]).toUpperCase(),
                             id: Math.random()
                         }));
                     } 
@@ -714,7 +766,7 @@
                             return String(row[8]).toUpperCase() === userCabang;
                         }).map(row => ({
                             tgl: formatTglIndo(row[0]), nota: row[1], item: row[2], qty: row[3], harga: row[4],
-                            garansi: row[5], modal: row[6], laba: row[7], cabang: row[8]
+                            garansi: row[5], modal: row[6], laba: row[7], cabang: String(row[8]).toUpperCase()
                         }));
                     }
                     else if (sName === "MUTASI") {
@@ -726,7 +778,7 @@
                         }).map(row => ({
                             tglK: formatTglIndo(row[0]), barang: row[1], jml: row[2], asal: row[3], tujuan: row[4],
                             admM: row[5], admT: row[6], status: row[7], ket: row[8], tglT: formatTglIndo(row[9]),
-                            cabang: row[10], modal: row[11], price: row[12], id: Math.random()
+                            cabang: String(row[3]).toUpperCase(), modal: row[11], price: row[12], id: Math.random()
                         }));
                     }
                 }
@@ -754,17 +806,25 @@
         }
     }
 
-    // --- PERMISSION SYSTEM (MENYEMBUNYIKAN MENU USER) ---
+    // --- PERMISSION SYSTEM (FIXED HIDING) ---
     function checkPermissions() {
         document.getElementById('display-username').innerText = loggedInUser.fullname;
         document.getElementById('display-role').innerText = loggedInUser.role;
         document.getElementById('display-cabang').innerText = loggedInUser.cabang;
         
-        // HANYA OWNER YANG BISA LIHAT MENU USER
-        if (loggedInUser.role === 'OWNER') {
-            document.getElementById('tab-users').classList.remove('hidden'); // Munculkan tombol
+        // NORMALISASI ROLE (Case Insensitive)
+        const currentRole = String(loggedInUser.role).toUpperCase().trim();
+        const isOwner = (currentRole === 'OWNER');
+
+        const tabUsers = document.getElementById('tab-users');
+        
+        // 1. Menu User (STRICT HIDING)
+        if (isOwner) {
+            tabUsers.classList.remove('hidden'); 
+            tabUsers.style.display = 'flex'; // Paksa muncul
         } else {
-            document.getElementById('tab-users').classList.add('hidden'); // Sembunyikan tombol
+            tabUsers.classList.add('hidden'); 
+            tabUsers.style.display = 'none'; // Paksa hilang (override CSS flex)
             
             // Safety Check: Jika user sedang berada di tab "Users" tapi bukan Owner, tendang ke POS
             const userSection = document.getElementById('sec-users');
@@ -772,6 +832,17 @@
                 switchTab('pos');
             }
         }
+
+        // 2. Filter Dropdown Owner (STRICT HIDING)
+        document.querySelectorAll('.owner-filter').forEach(el => {
+            if(isOwner) {
+                el.classList.remove('hidden');
+                el.style.display = 'block'; 
+            } else {
+                el.classList.add('hidden');
+                el.style.display = 'none';
+            }
+        });
     }
 
     function handleLogout() {
@@ -798,7 +869,7 @@
 
     // --- MANAJEMEN USER ---
     function prepareAddUser() {
-        if (loggedInUser.role !== 'OWNER') return Swal.fire('Akses Ditolak', 'Hanya Owner!', 'error');
+        if (String(loggedInUser.role).toUpperCase() !== 'OWNER') return Swal.fire('Akses Ditolak', 'Hanya Owner!', 'error');
         document.getElementById('modal-user-title').innerText = "Tambah User Baru";
         document.getElementById('in-user-id').value = "";
         document.getElementById('in-user-name').value = "";
@@ -808,7 +879,7 @@
     }
 
     function prepareEditUser(id) {
-        if (loggedInUser.role !== 'OWNER') return Swal.fire('Akses Ditolak', 'Hanya Owner!', 'error');
+        if (String(loggedInUser.role).toUpperCase() !== 'OWNER') return Swal.fire('Akses Ditolak', 'Hanya Owner!', 'error');
         const user = users.find(u => u.id === id);
         document.getElementById('modal-user-title').innerText = "Edit / Reset Password User";
         document.getElementById('in-user-id').value = user.id;
@@ -821,7 +892,7 @@
     }
 
     function saveUser() {
-        if (loggedInUser.role !== 'OWNER') return;
+        if (String(loggedInUser.role).toUpperCase() !== 'OWNER') return;
         const id = document.getElementById('in-user-id').value;
         const u = document.getElementById('in-user-name').value;
         const f = document.getElementById('in-user-fullname').value;
@@ -845,7 +916,7 @@
     }
 
     function deleteUser(id) {
-        if (loggedInUser.role !== 'OWNER') return Swal.fire('Akses Ditolak', 'Hanya Owner!', 'error');
+        if (String(loggedInUser.role).toUpperCase() !== 'OWNER') return Swal.fire('Akses Ditolak', 'Hanya Owner!', 'error');
         if(users.length <= 1) return Swal.fire('Error', 'Minimal harus ada 1 user', 'error');
         Swal.fire({
             title: 'Hapus User?',
@@ -858,6 +929,7 @@
 
     function formatRibuan(input) { let value = input.value.replace(/[^0-9]/g, ""); if (value === "") { input.value = ""; return; } input.value = parseInt(value).toLocaleString('id-ID'); }
     function getRawValue(id) { let val = document.getElementById(id).value; return parseInt(val.replace(/\./g, "")) || 0; }
+    function fmt(n) { return parseInt(n).toLocaleString('id-ID'); }
 
     function switchTab(tab) { 
         ['pos', 'service', 'stok', 'mutasi', 'laporan', 'users'].forEach(id => { 
@@ -947,12 +1019,36 @@
                 </div>
             </div>`).join('');
 
-        // Service Table
-        document.getElementById('service-table').innerHTML = services.map(s => `<tr><td class="text-slate-400">${s.tglM}</td><td class="text-indigo-500 font-bold">${s.tglA}</td><td class="font-black text-indigo-600">${s.nota}</td><td class="uppercase">${s.nama}</td><td class="text-[11px] font-mono">${s.wa}</td><td class="uppercase">${s.unit}</td><td class="text-red-500 font-bold uppercase">${s.rusak}</td><td><span onclick="editServiceField('${s.nota}', 'jasa', 'number')" class="editable-cell">Rp ${s.jasa.toLocaleString()}</span></td><td><span onclick="editServiceField('${s.nota}', 'part', 'number')" class="editable-cell">Rp ${s.part.toLocaleString()}</span></td><td class="bg-indigo-50/50 font-black">Rp ${s.total.toLocaleString()}</td><td class="text-[9px] font-black uppercase">${s.garansi}</td><td class="uppercase">${s.teknisi}</td><td class="uppercase text-slate-500">${s.admin}</td><td><span onclick="editServiceField('${s.nota}', 'status', 'text')" class="editable-cell px-2 py-1 rounded bg-orange-50 text-orange-600 text-[9px] font-black uppercase">${s.status}</span></td><td><span onclick="editServiceField('${s.nota}', 'bayar', 'text')" class="editable-cell px-2 py-1 rounded bg-blue-50 text-blue-600 text-[9px] font-black uppercase">${s.bayar}</span></td><td class="text-center"><button onclick="printSrv(${s.id})" class="text-slate-300 hover:text-indigo-600"><i data-lucide="printer" class="w-4 h-4"></i></button></td></tr>`).join('');
+        // Service Table (DISISIPKAN KOLOM DISKON & DP)
+        // Service Table (SUDAH DIPERBAIKI SUSUNAN & DIKUNCI BAGIAN JASA/PART)
+        document.getElementById('service-table').innerHTML = services.map(s => `
+            <tr data-cabang="${s.cabang}">
+                <td class="text-slate-400">${s.tglM}</td>
+                <td class="text-indigo-500 font-bold">${s.tglA}</td>
+                <td class="font-black text-indigo-600">${s.nota}</td>
+                <td class="uppercase">${s.nama}</td>
+                <td class="text-[11px] font-mono">${s.wa}</td>
+                <td class="uppercase">${s.unit}</td>
+                <td class="text-red-500 font-bold uppercase">${s.rusak}</td>
+                
+                <td>Rp ${fmt(s.jasa)}</td>
+                <td>Rp ${fmt(s.part)}</td>
+                <td><span onclick="editServiceField('${s.nota}', 'diskon', 'number')" class="editable-cell text-green-600 font-bold">-Rp ${fmt(s.diskon)}</span></td>
+                <td><span onclick="editServiceField('${s.nota}', 'dp', 'number')" class="editable-cell text-blue-600 font-bold">Rp ${fmt(s.dp)}</span></td>
+                
+                <td class="bg-indigo-50/50 font-black">Rp ${fmt(s.total)}</td>
+                <td class="text-[9px] font-black uppercase">${s.garansi}</td>
+                <td class="uppercase">${s.teknisi}</td>
+                <td class="uppercase text-slate-500">${s.admin}</td>
+                <td><span onclick="editServiceField('${s.nota}', 'status', 'text')" class="editable-cell px-2 py-1 rounded bg-orange-50 text-orange-600 text-[9px] font-black uppercase">${s.status}</span></td>
+                <td><span onclick="editServiceField('${s.nota}', 'bayar', 'text')" class="editable-cell px-2 py-1 rounded bg-blue-50 text-blue-600 text-[9px] font-black uppercase">${s.bayar}</span></td>
+                <td class="text-center"><button onclick="printSrv(${s.id})" class="text-slate-300 hover:text-indigo-600"><i data-lucide="printer" class="w-4 h-4"></i></button></td>
+                <td class="text-[9px] font-bold text-slate-400">${s.cabang}</td>
+            </tr>`).join('');
 
         // Stok Table
         document.getElementById('stok-table').innerHTML = products.map(p => `
-            <tr>
+            <tr data-cabang="${p.cabang}">
                 <td class="text-slate-400">${p.tgl}</td>
                 <td class="font-bold uppercase">${p.nama}</td>
                 <td class="text-center text-green-600 font-bold">${p.stok}</td>
@@ -962,9 +1058,10 @@
                 <td class="text-center font-black text-indigo-600">${p.kepService}</td>
                 <td class="font-bold text-indigo-400">${p.nota}</td>
                 <td class="uppercase">${p.admin}</td>
+                <td class="text-[9px] font-bold text-slate-400">${p.cabang}</td>
                 <td>
                     <div class="flex gap-1 justify-center">
-                        ${loggedInUser.role === 'OWNER' ? `<button onclick="editHarga(${p.id})" class="bg-blue-50 text-blue-500 p-1.5 rounded-lg hover:bg-blue-600 hover:text-white transition-all"><i data-lucide="tag" class="w-3.5 h-3.5"></i></button>` : ''}
+                        ${String(loggedInUser.role).toUpperCase() === 'OWNER' ? `<button onclick="editHarga(${p.id})" class="bg-blue-50 text-blue-500 p-1.5 rounded-lg hover:bg-blue-600 hover:text-white transition-all"><i data-lucide="tag" class="w-3.5 h-3.5"></i></button>` : ''}
                         <button onclick="stockAction(${p.id}, 'rusak')" class="bg-red-50 text-red-500 p-1.5 rounded-lg"><i data-lucide="frown" class="w-3.5 h-3.5"></i></button>
                         <button onclick="stockAction(${p.id}, 'retur')" class="bg-orange-50 text-orange-500 p-1.5 rounded-lg"><i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i></button>
                         <button onclick="finishRetur(${p.id})" class="bg-emerald-50 text-emerald-500 p-1.5 rounded-lg"><i data-lucide="package-check" class="w-3.5 h-3.5"></i></button>
@@ -979,8 +1076,22 @@
         document.getElementById('mutasi-table').innerHTML = mutations.map(m => {
             const apakahPenerima = m.tujuan.toUpperCase() === loggedInUser.cabang.toUpperCase();
             const masihPending = m.status === "DIKIRIM";
-            return `<tr><td>${m.tglK}</td><td>${m.barang}</td><td class="text-center">${m.jml}</td><td>${m.asal}</td><td>${m.tujuan}</td><td>${m.admM}</td><td>${m.admT}</td><td><span class="${masihPending ? 'bg-amber-100 text-amber-700' : 'bg-emerald-100 text-emerald-700'} px-2 py-1 rounded-full text-[9px] font-bold">${m.status}</span></td><td>${m.ket}</td><td>${m.tglT}</td><td>${apakahPenerima && masihPending ? `<button onclick="terimaMutasi(${m.id})" class="bg-indigo-600 text-white px-3 py-1 rounded-lg text-[9px]">TERIMA</button>` : (masihPending ? '...' : 'OK')}</td></tr>`;
+            return `<tr data-cabang="${m.cabang}"><td>${m.tglK}</td><td>${m.barang}</td><td class="text-center">${m.jml}</td><td>${m.asal}</td><td>${m.tujuan}</td><td>${m.admM}</td><td>${m.admT}</td><td><span class="${masihPending ? 'bg-amber-100 text-amber-700' : 'bg-emerald-100 text-emerald-700'} px-2 py-1 rounded-full text-[9px] font-bold">${m.status}</span></td><td>${m.ket}</td><td>${m.tglT}</td><td>${apakahPenerima && masihPending ? `<button onclick="terimaMutasi(${m.id})" class="bg-indigo-600 text-white px-3 py-1 rounded-lg text-[9px]">TERIMA</button>` : (masihPending ? '...' : 'OK')}</td></tr>`;
         }).reverse().join('');
+
+        // Laporan Table (Menambahkan data-cabang)
+        document.getElementById('sales-detail-table').innerHTML = salesData.map(s => `
+        <tr class="border-b" data-cabang="${s.cabang}">
+            <td>${s.tgl}</td>
+            <td class="font-bold text-indigo-600">${s.nota}</td>
+            <td class="uppercase">${s.item}</td>
+            <td class="text-center font-bold">${s.qty}</td>
+            <td class="font-bold">Rp ${s.harga.toLocaleString('id-ID')}</td>
+            <td class="uppercase text-[9px] font-black text-indigo-400">${s.garansi}</td>
+            <td class="text-slate-400">Rp ${s.modal.toLocaleString('id-ID')}</td>
+            <td class="font-black text-emerald-600">Rp ${s.laba.toLocaleString('id-ID')}</td>
+            <td class="text-[9px] font-bold text-slate-400">${s.cabang}</td>
+        </tr>`).reverse().join('');
 
         filterService();
         filterMutasiTanggal();
@@ -1003,10 +1114,28 @@
         lucide.createIcons();
     }
 
+    // --- HELPER FILTER OWNER ---
+    function checkOwnerFilter(row, filterId) {
+        if (String(loggedInUser.role).toUpperCase() !== 'OWNER') return true; 
+        const filterVal = document.getElementById(filterId).value;
+        const rowCabang = row.getAttribute('data-cabang');
+        return filterVal === "SEMUA" || (rowCabang && rowCabang.toUpperCase() === filterVal);
+    }
+
     function filterPos() { const v = document.getElementById('search-pos').value.toLowerCase(); document.querySelectorAll('.item-card').forEach(c => c.style.display = c.innerText.toLowerCase().includes(v) ? '' : 'none'); }
-    function filterStok() { const v = document.getElementById('search-stok').value.toLowerCase(); document.querySelectorAll('#stok-table tr').forEach(r => r.style.display = r.innerText.toLowerCase().includes(v) ? '' : 'none'); }
+    
+    function filterStok() { 
+        const k = document.getElementById('search-stok').value.toLowerCase(); 
+        document.querySelectorAll('#stok-table tr').forEach(r => {
+            const mK = r.innerText.toLowerCase().includes(k);
+            const mO = checkOwnerFilter(r, 'filter-owner-stok');
+            r.style.display = (mK && mO) ? '' : 'none';
+        });
+    }
+
     function addToCart(id) { const p = products.find(x => x.id === id); if(p.stok <= 0) return; const e = cart.find(i => i.id === id); if(e) { e.qty++; } else { cart.push({...p, qty: 1}); } updateCartUI(); }
     function removeFromCart(i) { if(cart[i].qty > 1) { cart[i].qty--; } else { cart.splice(i, 1); } updateCartUI(); }
+    
     function filterService() {
         const keyword = document.getElementById('search-service').value.toLowerCase();
         const statusFilter = document.getElementById('filter-status-service').value;
@@ -1015,7 +1144,7 @@
 
         tableRows.forEach(row => {
             const textContent = row.innerText.toLowerCase();
-            const statusText = row.cells[13] ? row.cells[13].innerText.toUpperCase() : "";
+            const statusText = row.cells[14] ? row.cells[14].innerText.toUpperCase() : ""; // INDEX GESER KARENA ADA 2 KOLOM BARU
             const tglRow = row.cells[0].innerText; 
 
             let matchDate = true;
@@ -1035,8 +1164,10 @@
             }
 
             const matchKeyword = textContent.includes(keyword);
+            // Tambahan Filter Owner
+            const matchOwner = checkOwnerFilter(row, 'filter-owner-service');
 
-            if (matchStatus && matchDate && matchKeyword) {
+            if (matchStatus && matchDate && matchKeyword && matchOwner) {
                 row.style.display = "";
             } else {
                 row.style.display = "none";
@@ -1120,7 +1251,7 @@
 
     function updateLaporanUI() {
         let nq = 0, nk = 0, nb = 0;
-        document.getElementById('sales-detail-table').innerHTML = salesData.map(s => { nq += s.qty; nk += s.harga; nb += s.laba; return `<tr class="border-b"><td>${s.tgl}</td><td class="font-bold text-indigo-600">${s.nota}</td><td class="uppercase">${s.item}</td><td class="text-center font-bold">${s.qty}</td><td class="font-bold">Rp ${s.harga.toLocaleString('id-ID')}</td><td class="uppercase text-[9px] font-black text-indigo-400">${s.garansi}</td><td class="text-slate-400">Rp ${s.modal.toLocaleString('id-ID')}</td><td class="font-black text-emerald-600">Rp ${s.laba.toLocaleString('id-ID')}</td></tr>`; }).reverse().join('');
+        // Calculation handled in renderAll loop for accuracy with filters
         document.getElementById('stat-nota').innerText = [...new Set(salesData.map(s => s.nota))].length; document.getElementById('stat-qty').innerText = nq; document.getElementById('stat-kotor').innerText = "Rp " + nk.toLocaleString('id-ID'); document.getElementById('stat-bersih').innerText = "Rp " + nb.toLocaleString('id-ID');
     }
 
@@ -1186,7 +1317,12 @@
     const partName = document.getElementById('in-srv-part-name').value.toUpperCase();
     const jasa = getRawValue('in-srv-jasa');
     const partPrice = getRawValue('in-srv-part');
-    const total = jasa + partPrice;
+    // AMBIL DATA BARU
+    const diskon = getRawValue('in-srv-diskon');
+    const dp = getRawValue('in-srv-dp');
+
+    // HITUNG TOTAL BARU (Jasa + Part - Diskon)
+    const total = (jasa + partPrice) - diskon;
     const nota = generateNota('SRV');
     const tgl = new Date().toISOString();
 
@@ -1195,7 +1331,6 @@
         if (itemInStok) {
             if (itemInStok.stok > 0) {
                 adjustStock(itemInStok.id, 1, 'kep_service');
-                
                 const rowDataStok = [
                     formatTglIndo(tgl), partName, -1, 0, 0, 0, 1, 
                     nota, loggedInUser.fullname, "DIPAKAI SERVICE"
@@ -1213,7 +1348,9 @@
         document.getElementById('in-srv-wa').value, 
         document.getElementById('in-srv-unit').value.toUpperCase(), 
         document.getElementById('in-srv-rusak').value.toUpperCase(), 
-        jasa, partPrice, total, "NON GARANSI", 
+        jasa, partPrice, 
+        diskon, dp, // INSERT KOLOM BARU DI SINI
+        total, "NON GARANSI", 
         document.getElementById('in-srv-teknisi').value.toUpperCase(), 
         loggedInUser.fullname.toUpperCase(), 
         document.getElementById('in-srv-status').value, 
@@ -1226,9 +1363,9 @@
     services.push({ 
         id: Date.now() + Math.random(), tglM: formatTglIndo(tgl), tglA: "-", nota: nota, 
         nama: rowData[3], wa: rowData[4], unit: rowData[5], rusak: rowData[6], 
-        jasa: jasa, part: partPrice, total: total, garansi: rowData[10], 
-        teknisi: rowData[11], admin: rowData[12], status: rowData[13], 
-        bayar: rowData[14], cetak: rowData[15], cabang: rowData[16] 
+        jasa: jasa, part: partPrice, diskon: diskon, dp: dp, total: total, garansi: rowData[12], 
+        teknisi: rowData[13], admin: rowData[14], status: rowData[15], 
+        bayar: rowData[16], cetak: rowData[17], cabang: rowData[18] 
     }); 
 
     closeModal('modal-service'); 
@@ -1428,14 +1565,19 @@
 
         if (type === 'number') { 
             s[field] = parseInt(newVal.replace(/\./g, "")) || 0; 
-            s.total = s.jasa + s.part; 
+            // RE-CALCULATE TOTAL JIKA HARGA/DISKON BERUBAH
+            if(['jasa','part','diskon'].includes(field)) {
+                s.total = (s.jasa + s.part) - s.diskon;
+            }
         } else { 
             s[field] = newVal; 
         }
 
         const rowUpdateSrv = [
             s.tglM, s.tglA, s.nota, s.nama, s.wa, s.unit, s.rusak, 
-            s.jasa, s.part, s.total, s.garansi, s.teknisi, s.admin, 
+            s.jasa, s.part, 
+            s.diskon, s.dp, // UPDATE
+            s.total, s.garansi, s.teknisi, s.admin, 
             s.status, s.bayar, s.cetak, s.cabang
         ];
 
@@ -1501,7 +1643,27 @@
 
     function printSrv(id) { 
         const s = services.find(x => x.id === id); 
-        printReceipt(s.nota, [{nama: s.unit, qty: 1, price: s.total}], s.total, s.bayar, s.garansi); 
+        // PRINT NOTA SERVICE
+        if(s) {
+            const sisa = s.total - s.dp;
+            const area = document.getElementById('print-area'); 
+            area.innerHTML = `
+            <div style="width:58mm; padding:5px; font-family:monospace; background:white; color:black;">
+                <div style="text-align:center; border-bottom:1px dashed #000; padding-bottom:5px; margin-bottom:5px;">
+                    <b style="font-size:12px">BEDAH HP</b><br><span style="font-size:8px">SERVICE RECEIPT</span>
+                </div>
+                <div style="font-size:9px; margin-bottom:5px;">Nota: ${s.nota}<br>Plg: ${s.nama}<br>Unit: ${s.unit}</div>
+                <div style="border-top:1px dashed #000; padding-top:5px; font-size:9px;">
+                    <div style="display:flex; justify-content:space-between;"><span>Jasa+Part</span><span>${fmt(s.jasa+s.part)}</span></div>
+                    <div style="display:flex; justify-content:space-between;"><span>Diskon</span><span>-${fmt(s.diskon)}</span></div>
+                    <div style="display:flex; justify-content:space-between; font-weight:bold;"><span>TOTAL</span><span>${fmt(s.total)}</span></div>
+                    <div style="display:flex; justify-content:space-between;"><span>DP</span><span>${fmt(s.dp)}</span></div>
+                    <div style="display:flex; justify-content:space-between; font-weight:bold; margin-top:4px; border-top:1px solid #000;"><span>SISA</span><span>Rp ${fmt(sisa)}</span></div>
+                </div>
+            </div>`;
+            area.classList.remove('hidden'); 
+            setTimeout(() => { window.print(); area.classList.add('hidden'); area.innerHTML = ''; }, 500); 
+        }
     }
     
     function updateStockGuide() {
@@ -1532,7 +1694,7 @@
     }
     };
     async function editHarga(id) {
-    if (loggedInUser.role !== 'OWNER') {
+    if (String(loggedInUser.role).toUpperCase() !== 'OWNER') {
         return Swal.fire({
             icon: 'error',
             title: 'Akses Ditolak',
@@ -1608,9 +1770,14 @@
     const dateFilter = document.getElementById('filter-date-stok').value;
     const tableRows = document.querySelectorAll('#stok-table tr');
     tableRows.forEach(row => {
-        if(!dateFilter) { row.style.display = ""; return; }
+        // FILTER OWNER STOK
+        const mO = checkOwnerFilter(row, 'filter-owner-stok');
+
+        if(!dateFilter) { row.style.display = mO ? "" : "none"; return; }
         const [y, m, d] = dateFilter.split('-');
-        row.style.display = (row.cells[0].innerText === `${d}/${m}/${y}`) ? "" : "none";
+        const mD = (row.cells[0].innerText === `${d}/${m}/${y}`);
+
+        row.style.display = (mD && mO) ? "" : "none";
     });
     }
 
@@ -1618,15 +1785,22 @@
         const dateFilter = document.getElementById('filter-date-mutasi').value;
         const tableRows = document.querySelectorAll('#mutasi-table tr');
         tableRows.forEach(row => {
-            if(!dateFilter) { row.style.display = ""; return; }
+            // FILTER OWNER MUTASI
+            const mO = checkOwnerFilter(row, 'filter-owner-mutasi');
+
+            if(!dateFilter) { row.style.display = mO ? "" : "none"; return; }
             const [y, m, d] = dateFilter.split('-');
-            row.style.display = (row.cells[0].innerText === `${d}/${m}/${y}`) ? "" : "none";
+            const mD = (row.cells[0].innerText === `${d}/${m}/${y}`);
+            
+            row.style.display = (mD && mO) ? "" : "none";
         });
     }
 
     function filterLaporanRange() {
         const startVal = document.getElementById('lap-start').value; 
         const endVal = document.getElementById('lap-end').value;
+        
+        // FILTER OWNER LAPORAN (Logic handled inside loop)
         
         if (!startVal || !endVal) return;
 
@@ -1646,7 +1820,10 @@
             const parts = tglRowStr.split('/');
             const rowDate = new Date(parts[2], parts[1] - 1, parts[0]);
 
-            if (rowDate >= startDate && rowDate <= endDate) {
+            const mD = (rowDate >= startDate && rowDate <= endDate);
+            const mO = checkOwnerFilter(row, 'filter-owner-laporan');
+
+            if (mD && mO) {
                 row.style.display = "";
                 
                 notaUnik.add(row.cells[1].innerText);
@@ -1668,6 +1845,7 @@
         document.getElementById('lap-start').value = "";
         document.getElementById('lap-end').value = "";
         
+        filterLaporanRange();
         const tableRows = document.querySelectorAll('#sales-detail-table tr');
         tableRows.forEach(row => row.style.display = "");
         
@@ -1793,10 +1971,10 @@
         
         JsBarcode(canvas, p.nota, {
             format: "CODE128",
-            width: 2,           
+            width: 2,            
             height: 45,         
             displayValue: true, 
-            fontSize: 14,       
+            fontSize: 14,        
             lineColor: "#000",
             margin: 10          
         });
