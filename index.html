@@ -1348,63 +1348,93 @@ Swal.fire({
     }
 
     function saveService() {
-    const partName = document.getElementById('in-srv-part-name').value.toUpperCase();
-    const jasa = getRawValue('in-srv-jasa');
-    const partPrice = getRawValue('in-srv-part');
-    // AMBIL DATA BARU
-    const diskon = getRawValue('in-srv-diskon');
-    const dp = getRawValue('in-srv-dp');
+        const partName = document.getElementById('in-srv-part-name').value.toUpperCase();
+        const jasa = getRawValue('in-srv-jasa');
+        const partPrice = getRawValue('in-srv-part');
+        const diskon = getRawValue('in-srv-diskon');
+        const dp = getRawValue('in-srv-dp');
 
-    // HITUNG TOTAL BARU (Jasa + Part - Diskon)
-    const total = (jasa + partPrice) - diskon;
-    const nota = generateNota('SRV');
-    const tgl = new Date().toISOString();
+        // HITUNG TOTAL
+        const total = (jasa + partPrice) - diskon;
+        const nota = generateNota('SRV');
+        const tgl = new Date().toISOString();
 
-    if (partName !== "") {
-        const itemInStok = products.find(p => p.nama.toUpperCase() === partName);
-        if (itemInStok) {
-            if (itemInStok.stok > 0) {
-                adjustStock(itemInStok.id, 1, 'kep_service');
-                const rowDataStok = [
-                    formatTglIndo(tgl), partName, -1, 0, 0, 0, 1, 
-                    nota, loggedInUser.fullname, "DIPAKAI SERVICE"
-                ];
-                sendToCloud("STOK", rowDataStok);
-            } else {
-                return Swal.fire('Stok Habis', 'Sparepart ini sudah tidak ada stok!', 'error');
+        // --- LOGIKA STOK DIMULAI ---
+        if (partName !== "") {
+            const itemInStok = products.find(p => p.nama.toUpperCase() === partName);
+            
+            if (itemInStok) {
+                if (itemInStok.stok > 0) {
+                    // 1. Kurangi angka stok di tampilan (biar berkurang visualnya)
+                    adjustStock(itemInStok.id, 1, 'kep_service');
+
+                    // 2. Kirim Data ke Cloud (Google Sheet)
+                    const rowDataStok = [
+                        formatTglIndo(tgl), partName, -1, 0, 0, 0, 1, 
+                        nota, loggedInUser.fullname, "DIPAKAI SERVICE"
+                    ];
+                    sendToCloud("STOK", rowDataStok);
+
+                    // 3. (INI YANG BARU) Catat Transaksi ini di Memori HP
+                    // Supaya saat di-Cancel, sistem langsung tahu kalau ada part yang dipakai.
+                    products.push({
+                        id: Math.random(),      
+                        tgl: formatTglIndo(tgl),
+                        nama: partName,
+                        stok: -1, 
+                        keluar: 0, rusak: 0, retur: 0,
+                        kepService: 1,          
+                        nota: nota,             // KUNCI UTAMA (Link ke Nota Service)
+                        admin: loggedInUser.fullname,
+                        ket: "DIPAKAI SERVICE", // Penanda Tambahan
+                        modal: itemInStok.modal,
+                        price: itemInStok.price,
+                        cabang: loggedInUser.cabang
+                    });
+
+                } else {
+                    return Swal.fire('Stok Habis', 'Sparepart ini sudah tidak ada stok!', 'error');
+                }
             }
         }
-    }
+        // --- LOGIKA STOK SELESAI ---
 
-    const rowData = [
-        tgl, "-", nota, 
-        document.getElementById('in-srv-nama').value.toUpperCase(), 
-        document.getElementById('in-srv-wa').value, 
-        document.getElementById('in-srv-unit').value.toUpperCase(), 
-        document.getElementById('in-srv-rusak').value.toUpperCase(), 
-        jasa, partPrice, 
-        diskon, dp, // INSERT KOLOM BARU DI SINI
-        total, "NON GARANSI", 
-        document.getElementById('in-srv-teknisi').value.toUpperCase(), 
-        loggedInUser.fullname.toUpperCase(), 
-        document.getElementById('in-srv-status').value, 
-        "BELUM BAYAR", "-", 
-        loggedInUser.cabang 
-    ];
+        const rowData = [
+            tgl, "-", nota, 
+            document.getElementById('in-srv-nama').value.toUpperCase(), 
+            document.getElementById('in-srv-wa').value, 
+            document.getElementById('in-srv-unit').value.toUpperCase(), 
+            document.getElementById('in-srv-rusak').value.toUpperCase(), 
+            jasa, partPrice, 
+            diskon, dp, 
+            total, "NON GARANSI", 
+            document.getElementById('in-srv-teknisi').value.toUpperCase(), 
+            loggedInUser.fullname.toUpperCase(), 
+            document.getElementById('in-srv-status').value, 
+            "BELUM BAYAR", "-", 
+            loggedInUser.cabang 
+        ];
 
-    sendToCloud("SERVICE", rowData);
+        sendToCloud("SERVICE", rowData);
 
-    services.push({ 
-        id: Date.now() + Math.random(), tglM: formatTglIndo(tgl), tglA: "-", nota: nota, 
-        nama: rowData[3], wa: rowData[4], unit: rowData[5], rusak: rowData[6], 
-        jasa: jasa, part: partPrice, diskon: diskon, dp: dp, total: total, garansi: rowData[12], 
-        teknisi: rowData[13], admin: rowData[14], status: rowData[15], 
-        bayar: rowData[16], cetak: rowData[17], cabang: rowData[18] 
-    }); 
+        services.push({ 
+            id: Date.now() + Math.random(), tglM: formatTglIndo(tgl), tglA: "-", nota: nota, 
+            nama: rowData[3], wa: rowData[4], unit: rowData[5], rusak: rowData[6], 
+            jasa: jasa, part: partPrice, diskon: diskon, dp: dp, total: total, garansi: rowData[12], 
+            teknisi: rowData[13], admin: rowData[14], status: rowData[15], 
+            bayar: rowData[16], cetak: rowData[17], cabang: rowData[18] 
+        }); 
 
-    closeModal('modal-service'); 
-    renderAll(); 
-    Swal.fire({ icon: 'success', title: 'Service Berhasil Disimpan', text: partName ? 'Stok part otomatis dipotong' : '', timer: 1500, showConfirmButton: false });
+        closeModal('modal-service'); 
+        renderAll(); 
+        
+        Swal.fire({ 
+            icon: 'success', 
+            title: 'Service Disimpan', 
+            text: partName ? `Stok ${partName} otomatis terpotong.` : '', 
+            timer: 1500, 
+            showConfirmButton: false 
+        });
     }
 
     async function saveMutasi() { 
@@ -1547,93 +1577,134 @@ Swal.fire({
     } 
 
     async function editServiceField(id, field, type) {
-    const s = services.find(x => x.nota === id);
-    if (!s) return;
+        // 1. Cari data service berdasarkan Nota
+        const s = services.find(x => x.nota === id);
+        if (!s) return;
 
-    let inputType = 'text'; 
-    let inputOptions = null;
-    
-    if (field === 'status') { 
-        inputType = 'select'; 
-        inputOptions = { 'ANTRIAN': 'ANTRIAN', 'PROSES': 'PROSES', 'SELESAI': 'SELESAI', 'DIAMBIL': 'DIAMBIL', 'CANCEL': 'CANCEL' }; 
-    } 
-    else if (field === 'bayar') { 
-        inputType = 'select'; 
-        inputOptions = { 'BELUM BAYAR': 'BELUM BAYAR', 'LUNAS': 'LUNAS' }; 
-    }
+        let inputType = 'text';
+        let inputOptions = null;
 
-    const r = await Swal.fire({ 
-        title: `UPDATE ${field.toUpperCase()}`, 
-        input: inputType, 
-        inputOptions: inputOptions, 
-        inputValue: type === 'number' ? s[field].toLocaleString('id-ID') : s[field], 
-        showCancelButton: true, 
-        confirmButtonColor: '#4f46e5'
-    });
-
-    if(r.isConfirmed && r.value !== "") {
-        let newVal = r.value;
-        
-        if (field === 'status' && newVal === 'SELESAI') {
-            let cleanWA = s.wa.replace(/\D/g, ''); 
-            if (cleanWA.startsWith('0')) cleanWA = '62' + cleanWA.slice(1);
-            
-            const waText = `Halo kak ${s.nama}, unit ${s.unit} sudah SELESAI diservice. Silakan bisa diambil ke toko ya kak. Terima kasih.`;
-            const waLink = `https://api.whatsapp.com/send?phone=${cleanWA}&text=${encodeURIComponent(waText)}`;
-            
-            window.open(waLink, '_blank');
+        // Tentukan jenis input popup
+        if (field === 'status') {
+            inputType = 'select';
+            inputOptions = { 'ANTRIAN': 'ANTRIAN', 'PROSES': 'PROSES', 'SELESAI': 'SELESAI', 'DIAMBIL': 'DIAMBIL', 'CANCEL': 'CANCEL' };
         }
-      if (field === 'bayar' && newVal === 'LUNAS' && s.bayar !== 'LUNAS') { 
-            const tglLunas = new Date().toLocaleDateString('id-ID');
-            const dataLaporan = [
-                tglLunas, s.nota, `SERVICE: ${s.unit} (${s.nama})`, 
-                1, s.total, s.garansi, s.part, (s.total - s.part)
-            ];
-            sendToCloud("LAPORAN", dataLaporan);
-            salesData.push({ 
-                tgl: tglLunas, nota: s.nota, item: `SERVICE: ${s.unit}`, 
-                qty: 1, harga: s.total, garansi: s.garansi, 
-                modal: s.part, laba: s.total - s.part, cabang: loggedInUser.cabang 
-            });
+        else if (field === 'bayar') {
+            inputType = 'select';
+            inputOptions = { 'BELUM BAYAR': 'BELUM BAYAR', 'LUNAS': 'LUNAS' };
         }
 
-        if (type === 'number') { 
-            s[field] = parseInt(newVal.replace(/\./g, "")) || 0; 
-            // RE-CALCULATE TOTAL JIKA HARGA/DISKON BERUBAH
-            if(['jasa','part','diskon'].includes(field)) {
-                s.total = (s.jasa + s.part) - s.diskon;
+        // 2. Tampilkan Popup Edit
+        const r = await Swal.fire({
+            title: `UPDATE ${field.toUpperCase()}`,
+            input: inputType,
+            inputOptions: inputOptions,
+            inputValue: type === 'number' ? s[field].toLocaleString('id-ID') : s[field],
+            showCancelButton: true,
+            confirmButtonColor: '#4f46e5'
+        });
+
+        // 3. Jika tombol OK ditekan
+        if(r.isConfirmed && r.value !== "") {
+            let newVal = r.value;
+
+            // --- A. LOGIKA WA OTOMATIS (Status: SELESAI) ---
+            if (field === 'status' && newVal === 'SELESAI') {
+                let cleanWA = s.wa.replace(/\D/g, '');
+                if (cleanWA.startsWith('0')) cleanWA = '62' + cleanWA.slice(1);
+                
+                const waText = `Halo kak ${s.nama}, unit ${s.unit} sudah SELESAI diservice. Silakan bisa diambil ke toko ya kak. Terima kasih.`;
+                const waLink = `https://api.whatsapp.com/send?phone=${cleanWA}&text=${encodeURIComponent(waText)}`;
+                
+                window.open(waLink, '_blank');
             }
-        } else { 
-            s[field] = newVal; 
+
+            // --- B. LOGIKA BALIK STOK (Status: CANCEL) ---
+            if (field === 'status' && newVal === 'CANCEL') {
+                const partHistory = products.find(p => p.nota === s.nota && (p.ket === "DIPAKAI SERVICE" || Number(p.kepService) > 0));
+
+                if (partHistory) {
+                    const confirmRestock = await Swal.fire({
+                        title: 'Part Terdeteksi!',
+                        html: `Service ini menggunakan stok: <b>${partHistory.nama}</b>.<br>Apakah ingin dikembalikan ke stok?`,
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#10b981',
+                        cancelButtonColor: '#d33',
+                        confirmButtonText: 'YA, KEMBALIKAN',
+                        cancelButtonText: 'TIDAK'
+                    });
+
+                    if (confirmRestock.isConfirmed) {
+                        const tglNow = new Date().toLocaleDateString('id-ID');
+                        const rowRestock = [
+                            tglNow, partHistory.nama, 1, 0, 0, 0, 0, 
+                            s.nota + "-RET", loggedInUser.fullname, "RETURN CANCEL", 
+                            partHistory.modal, partHistory.price, loggedInUser.cabang
+                        ];
+
+                        await sendToCloud("STOK", rowRestock);
+
+                        products.forEach(p => {
+                            if(p.nama === partHistory.nama && p.cabang === loggedInUser.cabang) {
+                                p.stok = Number(p.stok) + 1;
+                            }
+                        });
+                        Swal.fire('Sukses', `Stok ${partHistory.nama} berhasil dikembalikan!`, 'success');
+                    }
+                }
+            }
+
+            // --- C. LOGIKA LAPORAN KEUANGAN (Bayar: LUNAS) ---
+            if (field === 'bayar' && newVal === 'LUNAS' && s.bayar !== 'LUNAS') {
+                const tglLunas = new Date().toLocaleDateString('id-ID');
+                const dataLaporan = [
+                    tglLunas, s.nota, `SERVICE: ${s.unit} (${s.nama})`,
+                    1, s.total, s.garansi, s.part, (s.total - s.part)
+                ];
+                sendToCloud("LAPORAN", dataLaporan);
+                salesData.push({
+                    tgl: tglLunas, nota: s.nota, item: `SERVICE: ${s.unit}`,
+                    qty: 1, harga: s.total, garansi: s.garansi,
+                    modal: s.part, laba: s.total - s.part, cabang: loggedInUser.cabang
+                });
+            }
+
+            // --- D. UPDATE NILAI DI MEMORI LOKAL ---
+            if (type === 'number') {
+                s[field] = parseInt(newVal.replace(/\./g, "")) || 0;
+                if(['jasa','part','diskon'].includes(field)) {
+                    s.total = (s.jasa + s.part) - s.diskon;
+                }
+            } else {
+                s[field] = newVal;
+            }
+
+            // --- E. SIMPAN UPDATE SERVICE KE SPREADSHEET ---
+            const rowUpdateSrv = [
+                s.tglM, s.tglA, s.nota, s.nama, s.wa, s.unit, s.rusak,
+                s.jasa, s.part, s.diskon, s.dp, s.total, s.garansi, s.teknisi, s.admin,
+                s.status, s.bayar, s.cetak, s.cabang
+            ];
+
+            Swal.fire({ title: 'Menyimpan...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+
+            try {
+                await fetch(WEB_APP_URL, {
+                    method: "POST",
+                    mode: "no-cors",
+                    body: JSON.stringify({
+                        action: 'saveData',
+                        targetSheet: "SERVICE",
+                        rowData: rowUpdateSrv
+                    })
+                });
+                renderAll(); 
+                Swal.fire({ icon: 'success', title: 'Status Terupdate!', timer: 1000, showConfirmButton: false });
+            } catch (e) {
+                Swal.fire('Error', 'Gagal update ke Spreadsheet', 'error');
+            }
         }
-
-        const rowUpdateSrv = [
-            s.tglM, s.tglA, s.nota, s.nama, s.wa, s.unit, s.rusak, 
-            s.jasa, s.part, 
-            s.diskon, s.dp, // UPDATE
-            s.total, s.garansi, s.teknisi, s.admin, 
-            s.status, s.bayar, s.cetak, s.cabang
-        ];
-
-        Swal.fire({ title: 'Menyimpan...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
-
-        try {
-            await fetch(WEB_APP_URL, {
-                method: "POST",
-                mode: "no-cors",
-                body: JSON.stringify({ 
-                    action: 'saveData', 
-                    targetSheet: "SERVICE", 
-                    rowData: rowUpdateSrv 
-                })
-            });
-            
-            renderAll();
-            Swal.fire({ icon: 'success', title: 'Status Terupdate!', timer: 1000, showConfirmButton: false });
-        } catch (e) {
-            Swal.fire('Error', 'Gagal update ke Spreadsheet', 'error');
-        }
-    }
     }
 
     function printReceipt(nota, items, total, pay, garansi) { 
@@ -2039,10 +2110,3 @@ Swal.fire({
     </script>
 </body>
 </html>
-
-
-
-
-
-
-
