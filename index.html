@@ -426,32 +426,41 @@
             </div>
 
             <div id="sec-laporan" class="hidden space-y-6">
-                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                    <h2 class="text-2xl font-black uppercase text-slate-800">Laporan Keuangan</h2>
-                    <div class="flex gap-2">
-                        <select id="filter-owner-laporan" onchange="filterLaporanRange()" class="hidden owner-filter px-4 py-2 bg-indigo-50 border border-indigo-200 rounded-xl text-[10px] font-bold uppercase text-indigo-800 outline-none">
-                            <option value="SEMUA">SEMUA CABANG</option>
-                            <option value="AIMAS 1">AIMAS 1</option>
-                            <option value="AIMAS 2">AIMAS 2</option>
-                            <option value="KOTA 1">KOTA 1</option>
-                            <option value="KOTA 2">KOTA 2</option>
-                        </select>
-                        <div class="flex items-center gap-2 bg-white p-2 rounded-2xl border border-slate-200 shadow-sm">
-                            <div class="flex flex-col">
-                                <label class="text-[8px] font-bold text-slate-400 px-1">DARI</label>
-                                <input type="date" id="lap-start" onchange="filterLaporanRange()" class="px-1 text-xs font-bold text-indigo-600 outline-none">
-                            </div>
-                            <span class="text-[9px] font-black text-slate-300 mt-3">/</span>
-                            <div class="flex flex-col">
-                                <label class="text-[8px] font-bold text-slate-400 px-1">SAMPAI</label>
-                                <input type="date" id="lap-end" onchange="filterLaporanRange()" class="px-1 text-xs font-bold text-indigo-600 outline-none">
-                            </div>
-                            <button onclick="resetFilterLaporan()" class="ml-2 p-2 text-slate-300 hover:text-red-500 transition-colors">
-                                <i data-lucide="refresh-ccw" class="w-4 h-4"></i>
-                            </button>
-                        </div>
-                    </div>
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <h2 class="text-2xl font-black uppercase text-slate-800">Laporan Keuangan</h2>
+            
+            <div class="flex flex-col md:flex-row gap-2 items-end md:items-center">
+                
+                <div class="flex bg-slate-100 p-1 rounded-xl">
+                    <button onclick="setLaporanPeriode('HARI')" class="px-3 py-1.5 text-[10px] font-bold text-slate-600 hover:bg-white hover:shadow-sm rounded-lg transition-all uppercase">Harian</button>
+                    <button onclick="setLaporanPeriode('MINGGU')" class="px-3 py-1.5 text-[10px] font-bold text-slate-600 hover:bg-white hover:shadow-sm rounded-lg transition-all uppercase">Mingguan</button>
+                    <button onclick="setLaporanPeriode('BULAN')" class="px-3 py-1.5 text-[10px] font-bold text-slate-600 hover:bg-white hover:shadow-sm rounded-lg transition-all uppercase">Bulanan</button>
                 </div>
+
+                <select id="filter-owner-laporan" onchange="filterLaporanRange()" class="hidden owner-filter px-4 py-2 bg-indigo-50 border border-indigo-200 rounded-xl text-[10px] font-bold uppercase text-indigo-800 outline-none">
+                    <option value="SEMUA">SEMUA CABANG</option>
+                    <option value="AIMAS 1">AIMAS 1</option>
+                    <option value="AIMAS 2">AIMAS 2</option>
+                    <option value="KOTA 1">KOTA 1</option>
+                    <option value="KOTA 2">KOTA 2</option>
+                </select>
+
+                <div class="flex items-center gap-2 bg-white p-2 rounded-2xl border border-slate-200 shadow-sm">
+                    <div class="flex flex-col">
+                        <label class="text-[8px] font-bold text-slate-400 px-1">DARI</label>
+                        <input type="date" id="lap-start" onchange="filterLaporanRange()" class="px-1 text-xs font-bold text-indigo-600 outline-none">
+                    </div>
+                    <span class="text-[9px] font-black text-slate-300 mt-3">/</span>
+                    <div class="flex flex-col">
+                        <label class="text-[8px] font-bold text-slate-400 px-1">SAMPAI</label>
+                        <input type="date" id="lap-end" onchange="filterLaporanRange()" class="px-1 text-xs font-bold text-indigo-600 outline-none">
+                    </div>
+                    <button onclick="resetFilterLaporan()" class="ml-2 p-2 text-slate-300 hover:text-red-500 transition-colors">
+                        <i data-lucide="refresh-ccw" class="w-4 h-4"></i>
+                    </button>
+                </div>
+            </div>
+            </div>
                 <div class="grid grid-cols-2 md:grid-cols-4 gap-4" id="laporan-stats">
                     <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm"><p class="text-[9px] font-black text-slate-400 mb-1 uppercase">Total Nota</p><h3 id="stat-nota" class="text-xl font-black">0</h3></div>
                     <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm"><p class="text-[9px] font-black text-slate-400 mb-1 uppercase">QTY Terjual</p><h3 id="stat-qty" class="text-xl font-black">0</h3></div>
@@ -544,13 +553,13 @@
             
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div class="space-y-4">
-                    <select id="in-srv-cabang-owner" class="w-full p-4 border-2 border-red-100 bg-red-50 rounded-2xl outline-none font-bold text-red-600 hidden">
-                        <option value="" disabled selected>-- PILIH CABANG (WAJIB) --</option>
-                        <option value="AIMAS 1">AIMAS 1</option>
-                        <option value="AIMAS 2">AIMAS 2</option>
-                        <option value="KOTA 1">KOTA 1</option>
-                        <option value="KOTA 2">KOTA 2</option>
-                    </select>
+                    <select id="in-srv-cabang-owner" onchange="updateListPartService()" class="w-full p-4 border-2 border-red-100 bg-red-50 rounded-2xl outline-none font-bold text-red-600 hidden">
+    <option value="" disabled selected>-- PILIH CABANG (WAJIB) --</option>
+    <option value="AIMAS 1">AIMAS 1</option>
+    <option value="AIMAS 2">AIMAS 2</option>
+    <option value="KOTA 1">KOTA 1</option>
+    <option value="KOTA 2">KOTA 2</option>
+</select>
 
                     <div>
                         <label class="block text-[9px] mb-1 text-slate-400">NAMA PELANGGAN</label>
@@ -666,7 +675,7 @@
 
     <script>
     // 1. URL APPS SCRIPT (Sesuai kode awalmu)
-    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycby33gcw6hMB78Nnws2qDfQqddxJxNa2iqqPpwfXcjN-YVKd3YUvfRL3ZDjR-S6_jJNVAA/exec";
+    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyo3AYLXLx2wMQ6m4Wf18Kw0OSDu9FreV2_8klm84bFsSV4hxNsjl3mR9h02FcswVfMZw/exec";
 
     // 2. DARK MODE LOGIC
     function toggleTheme() {
@@ -1052,11 +1061,16 @@ Swal.fire({
             if (id === 'modal-service') {
                 document.getElementById('in-srv-admin').value = loggedInUser.fullname;
                 const dropdownCabang = document.getElementById('in-srv-cabang-owner');
+                
                 if(isOwner) {
                     dropdownCabang.classList.remove('hidden');
-                    dropdownCabang.value = ""; // Reset
+                    dropdownCabang.value = ""; // Reset pilihan owner
+                    // Kosongkan list dulu biar owner wajib pilih cabang
+                    document.getElementById('data-barang-stok').innerHTML = ''; 
                 } else {
                     dropdownCabang.classList.add('hidden');
+                    // Jika Admin, langsung muat barang cabang dia
+                    updateListPartService(); 
                 }
             }
             // --- MULAI TEMPEL DI SINI ---
@@ -1174,9 +1188,10 @@ Swal.fire({
     <button onclick="printSrv(${s.id})" class="text-slate-300 hover:text-indigo-600">
         <i data-lucide="printer" class="w-4 h-4"></i>
     </button>
-    <button onclick="hapusData('SERVICE', '${s.nota}', 2)" class="text-slate-300 hover:text-red-600">
-        <i data-lucide="trash" class="w-4 h-4"></i>
-    </button>
+    ${String(loggedInUser.role).toUpperCase() === 'OWNER' ? 
+`<button onclick="hapusData('SERVICE', '${s.nota}', 2)" class="text-slate-300 hover:text-red-600">
+    <i data-lucide="trash" class="w-4 h-4"></i>
+</button>` : ''}
 </td>
                 <td class="text-[9px] font-bold text-slate-400">${s.cabang}</td>
             </tr>`).join('');
@@ -1205,9 +1220,10 @@ Swal.fire({
                         <button onclick="finishRetur(${p.id})" class="bg-emerald-50 text-emerald-500 p-1.5 rounded-lg"><i data-lucide="package-check" class="w-3.5 h-3.5"></i></button>
                         <button onclick="cetakBarcodeBarang(${p.id})" class="bg-slate-100 text-slate-600 p-1.5 rounded-lg hover:bg-indigo-600 hover:text-white transition-all">
                 <i data-lucide="barcode" class="w-3.5 h-3.5"></i>
-            </button><button onclick="hapusData('STOK', '${p.nota}', 7)" class="bg-red-100 text-red-600 p-1.5 rounded-lg hover:bg-red-600 hover:text-white transition-all" title="Hapus Permanen">
+            </button>${String(loggedInUser.role).toUpperCase() === 'OWNER' ? 
+`<button onclick="hapusData('STOK', '${p.nota}', 7)" class="bg-red-100 text-red-600 p-1.5 rounded-lg hover:bg-red-600 hover:text-white transition-all" title="Hapus Permanen">
     <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
-</button>
+</button>` : ''}
                     </div>
                 </td>
             </tr>`).join('');
@@ -1811,14 +1827,39 @@ Swal.fire({
             }
 
             // --- LOGIKA C: BALIK STOK (Status: CANCEL) ---
+            // --- LOGIKA C: BALIK STOK (Status: CANCEL) ---
             if (field === 'status' && newVal === 'CANCEL') {
+                // Cek apakah service ini pakai sparepart dari stok?
                 const partHistory = products.find(p => p.nota === s.nota);
+                
                 if (partHistory) {
-                    const conf = await Swal.fire({ title: 'Balik Stok?', text: `Kembalikan ${partHistory.nama} ke stok?`, icon: 'question', showCancelButton: true });
+                    const conf = await Swal.fire({ 
+                        title: 'Batalkan Part?', 
+                        text: `Stok ${partHistory.nama} akan dikembalikan otomatis.`, 
+                        icon: 'warning', 
+                        showCancelButton: true,
+                        confirmButtonText: 'YA, BATALKAN',
+                        confirmButtonColor: '#d33'
+                    });
+                    
                     if (conf.isConfirmed) {
-                        const rowR = [new Date().toLocaleDateString('id-ID'), partHistory.nama, 1, 0, 0, 0, 0, s.nota + "-RET", loggedInUser.fullname, "CANCEL", partHistory.modal, partHistory.price, s.cabang];
-                        await sendToCloud("STOK", rowR);
-                        loadDataFromCloud();
+                        // REVISI: Jangan buat baris baru, tapi HAPUS baris pemakaian lama (-1)
+                        // Agar data di tabel stok bersih (tidak ada duplikat)
+                        await fetch(WEB_APP_URL, {
+                            method: "POST",
+                            body: JSON.stringify({
+                                action: "deleteData",
+                                targetSheet: "STOK",
+                                uniqueId: s.nota, // Hapus stok yang punya nota service ini
+                                colIndex: 7       // Kolom H (Index 7) adalah letak Nota
+                            })
+                        });
+                        
+                        // Refresh agar stok terlihat kembali
+                        loadDataFromCloud(); 
+                    } else {
+                        // Jika user pilih Cancel di popup, hentikan proses (jangan ubah status jadi CANCEL)
+                        return; 
                     }
                 }
             }
@@ -2449,7 +2490,7 @@ function renderLaporanRealtime(data) {
     // --- [SELESAI] SCRIPT TAMBAHAN ---  
   // --- FUNGSI TAMBAHAN: HAPUS DATA ---
 async function hapusData(sheetName, uniqueId, colIndex) {
-    // 1. Cek apakah user adalah OWNER (Opsional, hapus if ini jika semua role boleh hapus)
+    // 1. Cek Permission Owner
     if (String(loggedInUser.role).toUpperCase() !== 'OWNER') {
         return Swal.fire('Akses Ditolak', 'Hanya Owner yang boleh menghapus data!', 'error');
     }
@@ -2471,22 +2512,37 @@ async function hapusData(sheetName, uniqueId, colIndex) {
     Swal.fire({ title: 'Menghapus...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
 
     try {
-        // 4. Kirim Request ke Google Sheet
+        // A. Hapus Data Utama (Sesuai Sheet yang dipilih)
         const response = await fetch(WEB_APP_URL, {
             method: "POST",
             body: JSON.stringify({
                 action: "deleteData",
                 targetSheet: sheetName,
                 uniqueId: uniqueId,
-                colIndex: colIndex // Kolom tempat Unique ID berada (dimulai dari 0)
+                colIndex: colIndex
             })
         });
+
+        // B. [LOGIKA BARU] PEMBERSIHAN OTOMATIS
+        // Jika yang dihapus adalah SERVICE, kita harus hapus juga jejak "-1" di sheet STOK
+        if (sheetName === 'SERVICE') {
+            await fetch(WEB_APP_URL, {
+                method: "POST",
+                mode: "no-cors", // Gunakan no-cors agar lebih cepat (fire & forget)
+                body: JSON.stringify({
+                    action: "deleteData",
+                    targetSheet: "STOK", // Target sheet STOK
+                    uniqueId: uniqueId,  // Gunakan NOTA yang sama
+                    colIndex: 7          // Di Sheet Stok, Nota ada di kolom H (index 7)
+                })
+            });
+        }
 
         const res = await response.json();
 
         if (res.status === 'success') {
-            Swal.fire('Terhapus!', 'Data berhasil dihapus dari database.', 'success');
-            // 5. Refresh Data
+            Swal.fire('Terhapus!', 'Data berhasil dihapus bersih dari database.', 'success');
+            // 4. Refresh Data
             loadDataFromCloud();
         } else {
             Swal.fire('Gagal', res.message || 'Gagal menghapus data.', 'error');
@@ -2694,6 +2750,89 @@ function updateListBarangMutasi() {
         
         listMutasi.innerHTML = uniqueNames.map(n => `<option value="${n}">`).join('');
     }
+  // --- FUNGSI BARU: FILTER PERIODE OTOMATIS ---
+function setLaporanPeriode(tipe) {
+    const today = new Date();
+    let startDate = new Date();
+    let endDate = new Date();
+
+    if (tipe === 'HARI') {
+        // Hari ini: Mulai dan Akhir adalah hari yang sama
+        startDate = today;
+        endDate = today;
+    } 
+    else if (tipe === 'MINGGU') {
+        // Minggu ini: Cari hari Senin (awal) sampai Minggu (akhir)
+        const day = today.getDay(); 
+        const diff = today.getDate() - day + (day === 0 ? -6 : 1); // Senin
+        startDate = new Date(today.setDate(diff));
+        
+        endDate = new Date(startDate);
+        endDate.setDate(startDate.getDate() + 6); // Minggu
+    } 
+    else if (tipe === 'BULAN') {
+        // Bulan ini: Tanggal 1 sampai Akhir Bulan
+        startDate = new Date(today.getFullYear(), today.getMonth(), 1);
+        endDate = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+    }
+
+    // Format ke YYYY-MM-DD untuk input HTML
+    const formatInput = (date) => {
+        const y = date.getFullYear();
+        const m = String(date.getMonth() + 1).padStart(2, '0');
+        const d = String(date.getDate()).padStart(2, '0');
+        return `${y}-${m}-${d}`;
+    };
+
+    document.getElementById('lap-start').value = formatInput(startDate);
+    document.getElementById('lap-end').value = formatInput(endDate);
+
+    // Jalankan Filter Utama
+    filterLaporanRange();
+    
+    // Feedback Visual (Opsional)
+    Swal.fire({
+        toast: true,
+        position: 'top-end',
+        icon: 'success',
+        title: `Laporan ${tipe} dimuat`,
+        showConfirmButton: false,
+        timer: 1000
+    });
+}
+  // --- FUNGSI BARU: LIST PART SESUAI CABANG & STOK ---
+function updateListPartService() {
+    const listContainer = document.getElementById('data-barang-stok');
+    const inputPart = document.getElementById('in-srv-part-name');
+    
+    // Kosongkan dulu list lama & input
+    listContainer.innerHTML = '';
+    
+    // 1. Tentukan Cabang Mana yang Aktif
+    let targetCabang = loggedInUser.cabang;
+    
+    // Jika Owner, ambil nilai dari dropdown
+    if (String(loggedInUser.role).toUpperCase() === 'OWNER' || targetCabang === 'ALL') {
+        const dropVal = document.getElementById('in-srv-cabang-owner').value;
+        if (!dropVal) return; // Jika belum pilih cabang, stop dulu
+        targetCabang = dropVal;
+    }
+
+    // 2. Filter Produk: Hanya cabang target & Stok > 0 (Opsional, kalau mau tampilkan yang stok 0 juga, hapus bagian && p.stok > 0)
+    const availableParts = products.filter(p => 
+        String(p.cabang).toUpperCase() === String(targetCabang).toUpperCase()
+    );
+
+    // 3. Susun HTML Datalist dengan Info Stok
+    // Format: Nama Barang (Value) - Info Sisa (Label)
+    const htmlOptions = availableParts.map(p => {
+        // Tanda peringatan jika stok menipis
+        const stokInfo = p.stok <= 0 ? '(HABIS)' : `(Sisa: ${p.stok})`;
+        return `<option value="${p.nama}">${stokInfo} - Rp ${p.price.toLocaleString('id-ID')}</option>`;
+    }).join('');
+
+    listContainer.innerHTML = htmlOptions;
+}
   </script>
 </body>
 </html>
