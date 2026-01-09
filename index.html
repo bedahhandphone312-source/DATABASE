@@ -124,7 +124,18 @@
                 position: absolute; 
                 left: 0; 
                 top: 0; 
-                width: 58mm; 
+                width: 100%; /* Dulu 58mm, sekarang 100% mengikuti kertas */
+                margin: 0;
+                padding: 0;
+            }
+            /* Hilangkan settingan barcode lama yang tabrakan */
+            .barcode-item {
+               /* ...biarkan style barcode tetap ada jika perlu... */
+            }
+            /* Tambahan agar printer Inkjet/Dot Matrix bersih */
+            @page {
+                size: auto;   /* Auto deteksi ukuran kertas */
+                margin: 5mm; /* Margin tipis biar muat banyak */
             }
         }
     </style>
@@ -292,8 +303,10 @@
                     <div class="flex flex-col md:flex-row flex-wrap gap-2 w-full md:w-auto">
                         <select id="filter-owner-service" onchange="filterService()" class="hidden owner-filter px-4 py-2 bg-indigo-50 border border-indigo-200 rounded-xl text-[10px] font-bold uppercase text-indigo-800 outline-none">
                             <option value="SEMUA">SEMUA CABANG</option>
-                            <option value="AIMAS">AIMAS</option>
-                            <option value="KOTA">KOTA</option>
+                            <option value="AIMAS 1">AIMAS 1</option>
+                            <option value="AIMAS 2">AIMAS 2</option>
+                            <option value="KOTA 1">KOTA 1</option>
+                            <option value="KOTA 2">KOTA 2</option>
                         </select>
                         <div class="relative flex-1 md:w-64">
                             <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400"></i>
@@ -353,8 +366,10 @@
                     <div class="flex flex-col md:flex-row gap-2">
                         <select id="filter-owner-stok" onchange="filterStok()" class="hidden owner-filter px-4 py-2 bg-indigo-50 border border-indigo-200 rounded-xl text-[10px] font-bold uppercase text-indigo-800 outline-none">
                             <option value="SEMUA">SEMUA CABANG</option>
-                            <option value="AIMAS">AIMAS</option>
-                            <option value="KOTA">KOTA</option>
+                            <option value="AIMAS 1">AIMAS 1</option>
+                            <option value="AIMAS 2">AIMAS 2</option>
+                            <option value="KOTA 1">KOTA 1</option>
+                            <option value="KOTA 2">KOTA 2</option>
                         </select>
                         <input type="text" id="search-stok" onkeyup="filterStok()" placeholder="Cari stok..." class="p-2.5 border rounded-xl text-xs w-full md:w-64 outline-none focus:border-indigo-500 bg-white">
                         <input type="date" id="filter-date-stok" onchange="filterStokTanggal()" 
@@ -381,8 +396,10 @@
                     <div class="flex items-center gap-3 w-full md:w-auto">
                         <select id="filter-owner-mutasi" onchange="filterMutasiTanggal()" class="hidden owner-filter px-4 py-2 bg-indigo-50 border border-indigo-200 rounded-xl text-[10px] font-bold uppercase text-indigo-800 outline-none">
                             <option value="SEMUA">SEMUA CABANG</option>
-                            <option value="AIMAS">AIMAS</option>
-                            <option value="KOTA">KOTA</option>
+                            <option value="AIMAS 1">AIMAS 1</option>
+                            <option value="AIMAS 2">AIMAS 2</option>
+                            <option value="KOTA 1">KOTA 1</option>
+                            <option value="KOTA 2">KOTA 2</option>
                         </select>
                         <div class="flex items-center gap-2 bg-white px-3 py-1.5 rounded-xl border border-slate-200">
                             <span class="text-[9px] font-black text-slate-400 uppercase">Filter:</span>
@@ -414,8 +431,10 @@
                     <div class="flex gap-2">
                         <select id="filter-owner-laporan" onchange="filterLaporanRange()" class="hidden owner-filter px-4 py-2 bg-indigo-50 border border-indigo-200 rounded-xl text-[10px] font-bold uppercase text-indigo-800 outline-none">
                             <option value="SEMUA">SEMUA CABANG</option>
-                            <option value="AIMAS">AIMAS</option>
-                            <option value="KOTA">KOTA</option>
+                            <option value="AIMAS 1">AIMAS 1</option>
+                            <option value="AIMAS 2">AIMAS 2</option>
+                            <option value="KOTA 1">KOTA 1</option>
+                            <option value="KOTA 2">KOTA 2</option>
                         </select>
                         <div class="flex items-center gap-2 bg-white p-2 rounded-2xl border border-slate-200 shadow-sm">
                             <div class="flex flex-col">
@@ -482,8 +501,10 @@
                     <option value="OWNER">OWNER</option>
                 </select>
                 <select id="in-user-cabang" class="w-full p-4 border rounded-2xl bg-slate-50 outline-none border-indigo-200">
-                    <option value="Aimas">Aimas</option>
-                    <option value="Kota">Kota</option>
+                    <option value="AIMAS 1">AIMAS 1</option>
+                    <option value="AIMAS 2">AIMAS 2</option>
+                    <option value="KOTA 1">KOTA 1</option>
+                    <option value="KOTA 2">KOTA 2</option>
                 </select>
                 <input type="text" id="in-user-pass" placeholder="Password" class="w-full p-4 border-2 border-amber-200 rounded-2xl bg-amber-50 outline-none">
             </div>
@@ -496,6 +517,14 @@
         <div class="bg-white w-full max-w-md rounded-3xl p-8 uppercase font-bold text-[11px] shadow-2xl">
             <h3 class="mb-6 text-indigo-600 border-b pb-4 text-sm">Tambah Stok Barang</h3>
             <div class="space-y-4">
+                <select id="in-stok-cabang-owner" class="w-full p-4 border-2 border-red-100 bg-red-50 rounded-2xl outline-none font-bold text-red-600 hidden">
+                    <option value="" disabled selected>-- PILIH CABANG (WAJIB) --</option>
+                    <option value="AIMAS 1">AIMAS 1</option>
+                    <option value="AIMAS 2">AIMAS 2</option>
+                    <option value="KOTA 1">KOTA 1</option>
+                    <option value="KOTA 2">KOTA 2</option>
+                </select>
+                
                 <div class="relative"><input type="text" id="in-stok-nama" list="data-barang-stok" placeholder="Nama Barang" class="w-full p-4 border rounded-2xl bg-slate-50 outline-none focus:border-indigo-500"><datalist id="data-barang-stok"></datalist></div>
                 <input type="text" id="in-stok-qty" onkeyup="formatRibuan(this)" placeholder="Jumlah" class="w-full p-4 border rounded-2xl bg-slate-50 outline-none focus:border-indigo-500">
                 <input type="text" id="in-stok-modal" onkeyup="formatRibuan(this)" placeholder="Harga Modal" class="w-full p-4 border rounded-2xl bg-slate-50 outline-none focus:border-indigo-500">
@@ -515,6 +544,14 @@
             
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div class="space-y-4">
+                    <select id="in-srv-cabang-owner" class="w-full p-4 border-2 border-red-100 bg-red-50 rounded-2xl outline-none font-bold text-red-600 hidden">
+                        <option value="" disabled selected>-- PILIH CABANG (WAJIB) --</option>
+                        <option value="AIMAS 1">AIMAS 1</option>
+                        <option value="AIMAS 2">AIMAS 2</option>
+                        <option value="KOTA 1">KOTA 1</option>
+                        <option value="KOTA 2">KOTA 2</option>
+                    </select>
+
                     <div>
                         <label class="block text-[9px] mb-1 text-slate-400">NAMA PELANGGAN</label>
                         <input type="text" id="in-srv-nama" placeholder="Nama..." class="w-full p-4 border rounded-2xl bg-slate-50 outline-none focus:border-indigo-500">
@@ -596,16 +633,27 @@
                 </div>
 
                 <div>
-                    <label class="block text-[9px] mb-1 text-slate-400">ASAL CABANG</label>
-                    <input type="text" id="in-mut-asal" placeholder="Asal Cabang" class="w-full p-4 border rounded-2xl bg-slate-100 outline-none" readonly>
-                </div>
+    <label class="block text-[9px] mb-1 text-slate-400">ASAL CABANG</label>
+    
+    <input type="text" id="in-mut-asal-text" class="w-full p-4 border rounded-2xl bg-slate-100 outline-none" readonly>
+    
+    <select id="in-mut-asal-select" onchange="updateListBarangMutasi()" class="hidden w-full p-4 border rounded-2xl bg-slate-50 outline-none font-bold text-indigo-600">
+        <option value="" disabled selected>-- PILIH SUMBER BARANG --</option>
+        <option value="AIMAS 1">AIMAS 1</option>
+        <option value="AIMAS 2">AIMAS 2</option>
+        <option value="KOTA 1">KOTA 1</option>
+        <option value="KOTA 2">KOTA 2</option>
+    </select>
+</div>
 
                 <div>
                     <label class="block text-[9px] mb-1 text-slate-400">TUJUAN KE</label>
                     <select id="in-mut-tujuan" class="w-full p-4 border rounded-2xl bg-slate-50 outline-none font-bold">
                         <option value="" disabled selected>PILIH TUJUAN</option>
-                        <option value="Aimas">Aimas</option>
-                        <option value="Kota">Kota</option>
+                        <option value="AIMAS 1">AIMAS 1</option>
+                        <option value="AIMAS 2">AIMAS 2</option>
+                        <option value="KOTA 1">KOTA 1</option>
+                        <option value="KOTA 2">KOTA 2</option>
                     </select>
                 </div>
 
@@ -618,7 +666,7 @@
 
     <script>
     // 1. URL APPS SCRIPT (Sesuai kode awalmu)
-    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwOtJa0NGmDH1xsh_f1DLnfbOr8_F3eEzkLIumKyJsJDvjU-QTSggMvai7ghyHlRmc3EA/exec";
+    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycby33gcw6hMB78Nnws2qDfQqddxJxNa2iqqPpwfXcjN-YVKd3YUvfRL3ZDjR-S6_jJNVAA/exec";
 
     // 2. DARK MODE LOGIC
     function toggleTheme() {
@@ -668,7 +716,7 @@
                 
                 loggedInUser.fullname = userValid.fullname;
                 loggedInUser.role = userValid.role;
-                loggedInUser.cabang = (String(userValid.role).toUpperCase() === 'OWNER') ? "ALL" : String(userValid.cabang).trim();
+                loggedInUser.cabang = (String(userValid.role).toUpperCase() === 'OWNER') ? "ALL" : String(userValid.cabang).trim().toUpperCase();
 
                 // 1. Cek Permission & Load Data
                 checkPermissions();
@@ -813,27 +861,33 @@ Swal.fire({
                 }
             } catch (e) { console.error("Gagal sinkron " + sName, e); }
         }
-        Swal.close();       
+        Swal.close();        
         renderAll();        
         checkPermissions(); 
     }
 
     async function sendToCloud(target, rowData) {
-        const finalData = [...rowData, loggedInUser.cabang]; 
-        try {
-            await fetch(WEB_APP_URL, {
-                method: "POST",
-                mode: "no-cors",
-                body: JSON.stringify({ 
-                    action: 'saveData', 
-                    targetSheet: target, 
-                    rowData: finalData 
-                })
-            });
-        } catch (e) {
-            console.error("Gagal kirim ke " + target, e);
-        }
+    // Logika: Hanya tambah kolom cabang jika tabelnya BUKAN 'USERS' 
+    // karena di form User sudah ada input cabangnya sendiri.
+    let finalData = rowData;
+    if (target.toUpperCase() !== "USERS") {
+        finalData = [...rowData, loggedInUser.cabang];
     }
+
+    try {
+        const response = await fetch(WEB_APP_URL, {
+            method: "POST",
+            body: JSON.stringify({ 
+                action: 'saveData', 
+                targetSheet: target, 
+                rowData: finalData 
+            })
+        });
+        return await response.json();
+    } catch (e) {
+        console.error("Gagal kirim ke " + target, e);
+    }
+}
 
     // --- PERMISSION SYSTEM (FIXED HIDING) ---
     function checkPermissions() {
@@ -926,28 +980,28 @@ Swal.fire({
     }
 
     function saveUser() {
-        if (String(loggedInUser.role).toUpperCase() !== 'OWNER') return;
-        const id = document.getElementById('in-user-id').value;
-        const u = document.getElementById('in-user-name').value;
-        const f = document.getElementById('in-user-fullname').value;
-        const r = document.getElementById('in-user-role').value;
-        const c = document.getElementById('in-user-cabang').value;
-        const p = document.getElementById('in-user-pass').value;
-        if(!u || !p) return Swal.fire('Error', 'Username & Password wajib diisi', 'error');
+    if (String(loggedInUser.role).toUpperCase() !== 'OWNER') return;
+    const u = document.getElementById('in-user-name').value;
+    const f = document.getElementById('in-user-fullname').value;
+    const r = document.getElementById('in-user-role').value;
+    const c = document.getElementById('in-user-cabang').value;
+    const p = document.getElementById('in-user-pass').value;
+    
+    if(!u || !p) return Swal.fire('Error', 'Username & Password wajib diisi', 'error');
 
-        const rowData = [u, f, r, p, c];
-        if(id) {
-            const idx = users.findIndex(x => x.id == id);
-            users[idx] = { ...users[idx], username: u, fullname: f, role: r, pass: p, cabang: c };
-            Swal.fire('Sukses', 'Data user berhasil diperbarui', 'success');
-        } else {
-            users.push({ id: Date.now(), username: u, fullname: f, role: r, pass: p, cabang: c });
-            sendToCloud("USERS", [u, f, r, p, c]);
+    // Susunan harus: username, fullname, role, password, cabang
+    const rowData = [u, f, r, p, c];
+    
+    Swal.fire({ title: 'Menyimpan User...', didOpen: () => Swal.showLoading() });
+    
+    sendToCloud("USERS", rowData).then(res => {
+        if(res && res.status === "success") {
             Swal.fire('Sukses', 'User berhasil ditambahkan', 'success');
+            closeModal('modal-user');
+            loadDataFromCloud(); // Refresh data
         }
-        closeModal('modal-user');
-        renderAll();
-    }
+    });
+}
 
     function deleteUser(id) {
         if (String(loggedInUser.role).toUpperCase() !== 'OWNER') return Swal.fire('Akses Ditolak', 'Hanya Owner!', 'error');
@@ -981,18 +1035,58 @@ Swal.fire({
         if (modal) {
             modal.classList.remove('hidden'); 
             updateDataLists(); 
+            
+            // --- LOGIKA FORM UNTUK OWNER ---
+            const isOwner = (String(loggedInUser.role).toUpperCase() === 'OWNER');
+            
             if (id === 'modal-stok') {
                 document.getElementById('in-stok-admin').value = loggedInUser.fullname;
+                const dropdownCabang = document.getElementById('in-stok-cabang-owner');
+                if(isOwner) {
+                    dropdownCabang.classList.remove('hidden');
+                    dropdownCabang.value = ""; // Reset
+                } else {
+                    dropdownCabang.classList.add('hidden');
+                }
             }
             if (id === 'modal-service') {
                 document.getElementById('in-srv-admin').value = loggedInUser.fullname;
+                const dropdownCabang = document.getElementById('in-srv-cabang-owner');
+                if(isOwner) {
+                    dropdownCabang.classList.remove('hidden');
+                    dropdownCabang.value = ""; // Reset
+                } else {
+                    dropdownCabang.classList.add('hidden');
+                }
             }
+            // --- MULAI TEMPEL DI SINI ---
             if (id === 'modal-mutasi') {
                 document.getElementById('in-mut-admin').value = loggedInUser.fullname;
-                document.getElementById('in-mut-asal').value = loggedInUser.cabang;
+                
+                const txtAsal = document.getElementById('in-mut-asal-text');
+                const selAsal = document.getElementById('in-mut-asal-select');
+
+                // Reset Form agar bersih saat dibuka
+                document.getElementById('in-mut-barang').value = "";
+                document.getElementById('in-mut-qty').value = "";
+                document.getElementById('mut-stock-guide').innerText = "";
+
+                // LOGIKA: Jika OWNER tampilkan Dropdown, Jika ADMIN isi otomatis & kunci
+                if (String(loggedInUser.role).toUpperCase() === 'OWNER') {
+                    selAsal.classList.remove('hidden'); 
+                    txtAsal.classList.add('hidden');    
+                    selAsal.value = "";                 
+                } else {
+                    selAsal.classList.add('hidden');    
+                    txtAsal.classList.remove('hidden'); 
+                    txtAsal.value = loggedInUser.cabang; // Isi otomatis cabang admin
+                    
+                    // Trigger agar list barang langsung muncul untuk admin
+                    updateListBarangMutasi(); 
+                }
             }
-        }
-    }
+        } // <--- Menutup if(modal)
+    } // <--- Menutup function openModal
     function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
 
     function updateDataLists() { 
@@ -1076,7 +1170,14 @@ Swal.fire({
                 <td class="uppercase text-slate-500">${s.admin}</td>
                 <td><span onclick="editServiceField('${s.nota}', 'status', 'text')" class="editable-cell px-2 py-1 rounded bg-orange-50 text-orange-600 text-[9px] font-black uppercase">${s.status}</span></td>
                 <td><span onclick="editServiceField('${s.nota}', 'bayar', 'text')" class="editable-cell px-2 py-1 rounded bg-blue-50 text-blue-600 text-[9px] font-black uppercase">${s.bayar}</span></td>
-                <td class="text-center"><button onclick="printSrv(${s.id})" class="text-slate-300 hover:text-indigo-600"><i data-lucide="printer" class="w-4 h-4"></i></button></td>
+                <td class="text-center flex items-center justify-center gap-2">
+    <button onclick="printSrv(${s.id})" class="text-slate-300 hover:text-indigo-600">
+        <i data-lucide="printer" class="w-4 h-4"></i>
+    </button>
+    <button onclick="hapusData('SERVICE', '${s.nota}', 2)" class="text-slate-300 hover:text-red-600">
+        <i data-lucide="trash" class="w-4 h-4"></i>
+    </button>
+</td>
                 <td class="text-[9px] font-bold text-slate-400">${s.cabang}</td>
             </tr>`).join('');
 
@@ -1095,13 +1196,18 @@ Swal.fire({
                 <td class="text-[9px] font-bold text-slate-400">${p.cabang}</td>
                 <td>
                     <div class="flex gap-1 justify-center">
-                        ${String(loggedInUser.role).toUpperCase() === 'OWNER' ? `<button onclick="editHarga(${p.id})" class="bg-blue-50 text-blue-500 p-1.5 rounded-lg hover:bg-blue-600 hover:text-white transition-all"><i data-lucide="tag" class="w-3.5 h-3.5"></i></button>` : ''}
+                        ${String(loggedInUser.role).toUpperCase() === 'OWNER' ? 
+`<button onclick="editStok(${p.id})" class="bg-amber-50 text-amber-600 p-1.5 rounded-lg hover:bg-amber-500 hover:text-white transition-all" title="Edit Stok Lengkap">
+    <i data-lucide="pencil" class="w-3.5 h-3.5"></i>
+</button>` : ''}
                         <button onclick="stockAction(${p.id}, 'rusak')" class="bg-red-50 text-red-500 p-1.5 rounded-lg"><i data-lucide="frown" class="w-3.5 h-3.5"></i></button>
                         <button onclick="stockAction(${p.id}, 'retur')" class="bg-orange-50 text-orange-500 p-1.5 rounded-lg"><i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i></button>
                         <button onclick="finishRetur(${p.id})" class="bg-emerald-50 text-emerald-500 p-1.5 rounded-lg"><i data-lucide="package-check" class="w-3.5 h-3.5"></i></button>
                         <button onclick="cetakBarcodeBarang(${p.id})" class="bg-slate-100 text-slate-600 p-1.5 rounded-lg hover:bg-indigo-600 hover:text-white transition-all">
                 <i data-lucide="barcode" class="w-3.5 h-3.5"></i>
-            </button>
+            </button><button onclick="hapusData('STOK', '${p.nota}', 7)" class="bg-red-100 text-red-600 p-1.5 rounded-lg hover:bg-red-600 hover:text-white transition-all" title="Hapus Permanen">
+    <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+</button>
                     </div>
                 </td>
             </tr>`).join('');
@@ -1178,7 +1284,8 @@ Swal.fire({
 
         tableRows.forEach(row => {
             const textContent = row.innerText.toLowerCase();
-            const statusText = row.cells[14] ? row.cells[14].innerText.toUpperCase() : ""; // INDEX GESER KARENA ADA 2 KOLOM BARU
+            // PERBAIKAN BUG INDEX KOLOM: Status ada di cell[15]
+            const statusText = row.cells[15] ? row.cells[15].innerText.toUpperCase() : ""; // INDEX GESER KARENA ADA 2 KOLOM BARU
             const tglRow = row.cells[0].innerText; 
 
             let matchDate = true;
@@ -1338,13 +1445,32 @@ Swal.fire({
         const jual = getRawValue('in-stok-jual');
         const modal = getRawValue('in-stok-modal');
         const adm = loggedInUser.fullname.toUpperCase();
+        
+        // --- LOGIKA CABANG OWNER ---
+        let cabangTarget = loggedInUser.cabang;
+        if(cabangTarget === "ALL" || cabangTarget === "OWNER") {
+            const selectedBranch = document.getElementById('in-stok-cabang-owner').value;
+            if(!selectedBranch) return Swal.fire('Pilih Cabang', 'Owner wajib memilih cabang tujuan stok!', 'warning');
+            cabangTarget = selectedBranch;
+        }
+        // ---------------------------
+
         const tgl = new Date().toLocaleDateString('id-ID'); 
         const nota = generateNota('STK');
-        const rowData = [tgl, nama, qty, 0, 0, 0, 0, nota, adm, "-", modal, jual];
-        sendToCloud("STOK", rowData);
-        products.push({ id: products.length + 1, nama: nama, price: jual, modal: modal, stok: qty, keluar: 0, rusak: 0, retur: 0, kepService: 0, nota: nota, admin: adm, tgl: tgl, cabang: loggedInUser.cabang }); 
-        closeModal('modal-stok'); renderAll(); 
-        Swal.fire({ icon: 'success', title: 'Stok Berhasil Disimpan', timer: 1500, showConfirmButton: false });
+        // Cabang dikirim manual di array karena sendToCloud akan pakai "ALL" kalau tidak di override. 
+        // Kita modif array di bawah ini:
+        const rowData = [tgl, nama, qty, 0, 0, 0, 0, nota, adm, "-", modal, jual, cabangTarget]; // Cabang masuk ke array
+        
+        // Panggil fetch manual karena struktur sendToCloud kita defaultnya nambah userCabang di akhir
+        Swal.fire({ title: 'Menyimpan...', didOpen: () => Swal.showLoading() });
+        fetch(WEB_APP_URL, {
+            method: "POST",
+            body: JSON.stringify({ action: 'saveData', targetSheet: "STOK", rowData: rowData }) // Kirim rowData yang sudah ada cabangnya
+        }).then(() => {
+            products.push({ id: products.length + 1, nama: nama, price: jual, modal: modal, stok: qty, keluar: 0, rusak: 0, retur: 0, kepService: 0, nota: nota, admin: adm, tgl: tgl, cabang: cabangTarget }); 
+            closeModal('modal-stok'); renderAll(); 
+            Swal.fire({ icon: 'success', title: 'Stok Tersimpan di ' + cabangTarget, timer: 1500, showConfirmButton: false });
+        });
     }
 
     function saveService() {
@@ -1353,15 +1479,24 @@ Swal.fire({
         const partPrice = getRawValue('in-srv-part');
         const diskon = getRawValue('in-srv-diskon');
         const dp = getRawValue('in-srv-dp');
+        
+        // --- LOGIKA CABANG OWNER ---
+        let cabangTarget = loggedInUser.cabang;
+        if(cabangTarget === "ALL" || cabangTarget === "OWNER") {
+            const selectedBranch = document.getElementById('in-srv-cabang-owner').value;
+            if(!selectedBranch) return Swal.fire('Pilih Cabang', 'Owner wajib memilih cabang service!', 'warning');
+            cabangTarget = selectedBranch;
+        }
+        // ---------------------------
 
-        // HITUNG TOTAL
         const total = (jasa + partPrice) - diskon;
         const nota = generateNota('SRV');
         const tgl = new Date().toISOString();
 
         // --- LOGIKA STOK (DIPERBAIKI) ---
         if (partName !== "") {
-            const itemInStok = products.find(p => p.nama.toUpperCase() === partName);
+            // Cari produk yang sesuai nama DAN sesuai cabang target
+            const itemInStok = products.find(p => p.nama.toUpperCase() === partName && p.cabang === cabangTarget);
             
             if (itemInStok) {
                 if (itemInStok.stok > 0) {
@@ -1379,11 +1514,15 @@ Swal.fire({
                         loggedInUser.fullname,  // I
                         "DIPAKAI SERVICE",      // J
                         itemInStok.modal,       // K (INI TADI HILANG)
-                        itemInStok.price        // L (INI TADI HILANG)
+                        itemInStok.price,       // L (INI TADI HILANG)
+                        cabangTarget            // Pastikan cabang masuk
                     ];
                     // Cabang (M) akan otomatis ditambah oleh fungsi sendToCloud
                     
-                    sendToCloud("STOK", rowDataStok);
+                    fetch(WEB_APP_URL, {
+                        method: "POST",
+                        body: JSON.stringify({ action: 'saveData', targetSheet: "STOK", rowData: rowDataStok }) // Kirim rowData yang sudah ada cabangnya
+                    });
 
                     // 3. Catat Transaksi di Memori HP
                     products.push({
@@ -1398,12 +1537,15 @@ Swal.fire({
                         ket: "DIPAKAI SERVICE", 
                         modal: itemInStok.modal,
                         price: itemInStok.price,
-                        cabang: loggedInUser.cabang
+                        cabang: cabangTarget
                     });
 
                 } else {
-                    return Swal.fire('Stok Habis', 'Sparepart ini sudah tidak ada stok!', 'error');
+                    return Swal.fire('Stok Habis', `Stok ${partName} di ${cabangTarget} kosong!`, 'error');
                 }
+            } else {
+                // Jika Owner input tapi barang tidak ada di cabang tersebut
+                 return Swal.fire('Barang Tidak Ditemukan', `Tidak ada ${partName} di cabang ${cabangTarget}`, 'error');
             }
         }
         // --- LOGIKA STOK SELESAI ---
@@ -1421,17 +1563,21 @@ Swal.fire({
             loggedInUser.fullname.toUpperCase(), 
             document.getElementById('in-srv-status').value, 
             "BELUM BAYAR", "-", 
-            loggedInUser.cabang 
+            cabangTarget // Pakai cabang target
         ];
 
-        sendToCloud("SERVICE", rowData);
+        // Pakai fetch manual agar cabang tidak tertimpa "ALL"
+        fetch(WEB_APP_URL, {
+            method: "POST",
+            body: JSON.stringify({ action: 'saveData', targetSheet: "SERVICE", rowData: rowData }) 
+        });
 
         services.push({ 
             id: Date.now() + Math.random(), tglM: formatTglIndo(tgl), tglA: "-", nota: nota, 
             nama: rowData[3], wa: rowData[4], unit: rowData[5], rusak: rowData[6], 
             jasa: jasa, part: partPrice, diskon: diskon, dp: dp, total: total, garansi: rowData[12], 
             teknisi: rowData[13], admin: rowData[14], status: rowData[15], 
-            bayar: rowData[16], cetak: rowData[17], cabang: rowData[18] 
+            bayar: rowData[16], cetak: rowData[17], cabang: cabangTarget 
         }); 
 
         closeModal('modal-service'); 
@@ -1440,7 +1586,7 @@ Swal.fire({
         Swal.fire({ 
             icon: 'success', 
             title: 'Service Disimpan', 
-            text: partName ? `Stok ${partName} otomatis terpotong.` : '', 
+            text: `Data masuk ke ${cabangTarget}`, 
             timer: 1500, 
             showConfirmButton: false 
         });
@@ -1449,28 +1595,34 @@ Swal.fire({
     async function saveMutasi() { 
         const barang = document.getElementById('in-mut-barang').value.toUpperCase();
         const qty = getRawValue('in-mut-qty');
-        const asal = document.getElementById('in-mut-asal').value.toUpperCase();
-        const tujuan = document.getElementById('in-mut-tujuan').value.toUpperCase();
         const admin = loggedInUser.fullname.toUpperCase();
         const tgl = new Date().toLocaleDateString('id-ID');
+        const tujuan = document.getElementById('in-mut-tujuan').value.toUpperCase();
+
+        // LOGIKA AMBIL ASAL CABANG: Cek apakah select (Owner) atau text (Admin) yang aktif
+        const inputAsalSelect = document.getElementById('in-mut-asal-select');
+        let asal = document.getElementById('in-mut-asal-text').value.toUpperCase();
+        if (inputAsalSelect && !inputAsalSelect.classList.contains('hidden')) {
+            asal = inputAsalSelect.value.toUpperCase();
+        }
 
         if(!barang || !qty || !asal || !tujuan) {
             return Swal.fire('Error', 'Mohon lengkapi Nama Barang, Jumlah, Asal, dan Tujuan', 'error');
         }
 
-        const p = products.find(x => x.nama.toUpperCase() === barang);
+        const p = products.find(x => x.nama.toUpperCase() === barang && x.cabang === asal); 
         if (p) {
             if (p.stok < qty) return Swal.fire('Gagal', 'Stok tidak cukup!', 'error');
             adjustStock(p.id, qty, 'keluar');
+        } else {
+             return Swal.fire('Gagal', `Barang tidak ada di cabang ${asal}`, 'error');
         }
 
         Swal.fire({ title: 'Mengirim Mutasi...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); }});
 
         const rowData = [
             tgl, barang, qty, asal, tujuan, admin, "-", "DIKIRIM", "-", "-", 
-            asal,                 
-            (p ? p.modal : 0),  
-            (p ? p.price : 0)   
+            asal, (p ? p.modal : 0), (p ? p.price : 0) 
         ];
 
         await sendToCloud("MUTASI", rowData);
@@ -1585,6 +1737,7 @@ Swal.fire({
         }
     } 
 
+    // --- FUNGSI EDIT FIELD SERVICE (VERSI FINAL & BERSIH) ---
     async function editServiceField(id, field, type) {
         // 1. Cari data service berdasarkan Nota
         const s = services.find(x => x.nota === id);
@@ -1617,181 +1770,284 @@ Swal.fire({
         if(r.isConfirmed && r.value !== "") {
             let newVal = r.value;
 
-            // --- A. LOGIKA WA OTOMATIS (Status: SELESAI) ---
+            // --- LOGIKA A: WA OTOMATIS (Status: SELESAI) ---
             if (field === 'status' && newVal === 'SELESAI') {
                 let cleanWA = s.wa.replace(/\D/g, '');
                 if (cleanWA.startsWith('0')) cleanWA = '62' + cleanWA.slice(1);
-                
                 const waText = `Halo kak ${s.nama}, unit ${s.unit} sudah SELESAI diservice. Silakan bisa diambil ke toko ya kak. Terima kasih.`;
                 const waLink = `https://api.whatsapp.com/send?phone=${cleanWA}&text=${encodeURIComponent(waText)}`;
-                
                 window.open(waLink, '_blank');
             }
 
-            // --- B. LOGIKA BALIK STOK (Status: CANCEL) ---
+            // --- LOGIKA B: TANGGAL & GARANSI (Status: DIAMBIL) ---
+            if (field === 'status' && newVal === 'DIAMBIL') {
+                const d = new Date();
+                s.tglA = `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`;
+
+                const { value: resGaransi } = await Swal.fire({
+                    title: 'SET GARANSI UNIT',
+                    html: `
+                        <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+                            <input id="swal-g-angka" type="number" class="swal2-input" placeholder="Angka" style="width: 80px; margin: 0;">
+                            <select id="swal-g-satuan" class="swal2-input" style="flex: 1; margin: 0;">
+                                <option value="HARI">HARI</option>
+                                <option value="MINGGU">MINGGU</option>
+                                <option value="BULAN">BULAN</option>
+                            </select>
+                        </div>
+                        <div style="text-align: left;">
+                            <input type="checkbox" id="swal-g-non" onchange="document.getElementById('swal-g-angka').disabled = this.checked">
+                            <label for="swal-g-non" style="font-size:12px; font-weight:bold;">NON GARANSI</label>
+                        </div>
+                    `,
+                    preConfirm: () => {
+                        if (document.getElementById('swal-g-non').checked) return "NON GARANSI";
+                        const angka = document.getElementById('swal-g-angka').value;
+                        const satuan = document.getElementById('swal-g-satuan').value;
+                        return angka ? `${angka} ${satuan}` : "NON GARANSI";
+                    }
+                });
+                s.garansi = resGaransi || "NON GARANSI";
+            }
+
+            // --- LOGIKA C: BALIK STOK (Status: CANCEL) ---
             if (field === 'status' && newVal === 'CANCEL') {
-                const partHistory = products.find(p => p.nota === s.nota && (p.ket === "DIPAKAI SERVICE" || Number(p.kepService) > 0));
-
+                const partHistory = products.find(p => p.nota === s.nota);
                 if (partHistory) {
-                    const confirmRestock = await Swal.fire({
-                        title: 'Part Terdeteksi!',
-                        html: `Service ini menggunakan stok: <b>${partHistory.nama}</b>.<br>Apakah ingin dikembalikan ke stok?`,
-                        icon: 'warning',
-                        showCancelButton: true,
-                        confirmButtonColor: '#10b981',
-                        cancelButtonColor: '#d33',
-                        confirmButtonText: 'YA, KEMBALIKAN',
-                        cancelButtonText: 'TIDAK'
-                    });
-
-                    if (confirmRestock.isConfirmed) {
-                        const tglNow = new Date().toLocaleDateString('id-ID');
-                        const rowRestock = [
-                            tglNow, partHistory.nama, 1, 0, 0, 0, 0, 
-                            s.nota + "-RET", loggedInUser.fullname, "RETURN CANCEL", 
-                            partHistory.modal, partHistory.price, loggedInUser.cabang
-                        ];
-
-                        await sendToCloud("STOK", rowRestock);
-
-                        products.forEach(p => {
-                            if(p.nama === partHistory.nama && p.cabang === loggedInUser.cabang) {
-                                p.stok = Number(p.stok) + 1;
-                            }
-                        });
-                        Swal.fire('Sukses', `Stok ${partHistory.nama} berhasil dikembalikan!`, 'success');
+                    const conf = await Swal.fire({ title: 'Balik Stok?', text: `Kembalikan ${partHistory.nama} ke stok?`, icon: 'question', showCancelButton: true });
+                    if (conf.isConfirmed) {
+                        const rowR = [new Date().toLocaleDateString('id-ID'), partHistory.nama, 1, 0, 0, 0, 0, s.nota + "-RET", loggedInUser.fullname, "CANCEL", partHistory.modal, partHistory.price, s.cabang];
+                        await sendToCloud("STOK", rowR);
+                        loadDataFromCloud();
                     }
                 }
             }
 
-            // --- C. LOGIKA LAPORAN KEUANGAN (Bayar: LUNAS) ---
+            // --- LOGIKA D: LAPORAN (Bayar: LUNAS) ---
             if (field === 'bayar' && newVal === 'LUNAS' && s.bayar !== 'LUNAS') {
-                const tglLunas = new Date().toLocaleDateString('id-ID');
-                const dataLaporan = [
-                    tglLunas, s.nota, `SERVICE: ${s.unit} (${s.nama})`,
-                    1, s.total, s.garansi, s.part, (s.total - s.part)
-                ];
-                sendToCloud("LAPORAN", dataLaporan);
-                salesData.push({
-                    tgl: tglLunas, nota: s.nota, item: `SERVICE: ${s.unit}`,
-                    qty: 1, harga: s.total, garansi: s.garansi,
-                    modal: s.part, laba: s.total - s.part, cabang: loggedInUser.cabang
-                });
+                const rowL = [new Date().toLocaleDateString('id-ID'), s.nota, `SRV: ${s.unit} (${s.nama})`, 1, s.total, s.garansi, s.part, (s.total - s.part), s.cabang];
+                await fetch(WEB_APP_URL, { method: "POST", body: JSON.stringify({ action: 'saveData', targetSheet: "LAPORAN", rowData: rowL }) });
             }
 
-            // --- D. UPDATE NILAI DI MEMORI LOKAL ---
+            // --- UPDATE DATA LOKAL ---
             if (type === 'number') {
                 s[field] = parseInt(newVal.replace(/\./g, "")) || 0;
-                if(['jasa','part','diskon'].includes(field)) {
-                    s.total = (s.jasa + s.part) - s.diskon;
-                }
             } else {
                 s[field] = newVal;
             }
+            if(['jasa','part','diskon'].includes(field)) s.total = (s.jasa + s.part) - s.diskon;
 
-            // --- E. SIMPAN UPDATE SERVICE KE SPREADSHEET ---
-            const rowUpdateSrv = [
-                s.tglM, s.tglA, s.nota, s.nama, s.wa, s.unit, s.rusak,
-                s.jasa, s.part, s.diskon, s.dp, s.total, s.garansi, s.teknisi, s.admin,
-                s.status, s.bayar, s.cetak, s.cabang
-            ];
-
-            Swal.fire({ title: 'Menyimpan...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
-
+            // --- SIMPAN KE SPREADSHEET ---
+            const rowUpdate = [s.tglM, s.tglA, s.nota, s.nama, s.wa, s.unit, s.rusak, s.jasa, s.part, s.diskon, s.dp, s.total, s.garansi, s.teknisi, s.admin, s.status, s.bayar, s.cetak, s.cabang];
+            
+            Swal.fire({ title: 'Menyimpan...', didOpen: () => Swal.showLoading() });
             try {
-                await fetch(WEB_APP_URL, {
-                    method: "POST",
-                    mode: "no-cors",
-                    body: JSON.stringify({
-                        action: 'saveData',
-                        targetSheet: "SERVICE",
-                        rowData: rowUpdateSrv
-                    })
-                });
-                renderAll(); 
-                Swal.fire({ icon: 'success', title: 'Status Terupdate!', timer: 1000, showConfirmButton: false });
+                await fetch(WEB_APP_URL, { method: "POST", mode: "no-cors", body: JSON.stringify({ action: 'saveData', targetSheet: "SERVICE", rowData: rowUpdate }) });
+                renderAll();
+                Swal.fire({ icon: 'success', title: 'Berhasil Update!', timer: 1000, showConfirmButton: false });
             } catch (e) {
-                Swal.fire('Error', 'Gagal update ke Spreadsheet', 'error');
+                Swal.fire('Error', 'Gagal kirim data ke server', 'error');
             }
         }
     }
 
-    function printReceipt(nota, items, total, pay, garansi) { 
-        const listHtml = items.map(i => `
-            <div style="display:flex; justify-content:space-between; font-size:10px; margin-bottom:2px;">
-                <span>${i.nama} x${i.qty}</span>
-                <span>Rp${(i.price * i.qty).toLocaleString()}</span>
-            </div>`).join(''); 
+    // --- UPDATE FUNGSI CETAK BARCODE (MULTI LABEL + UNIQUE CODE) ---
+    function cetakBarcodeBarang(id) {
+        const p = products.find(x => x.id === id);
+        if (!p) return;
+        if (p.stok <= 0) return Swal.fire('Stok Kosong', 'Tidak ada stok untuk dicetak.', 'warning');
 
-        const area = document.getElementById('print-area'); 
-        area.innerHTML = `
-            <div style="width: 58mm; padding: 10px; font-family: monospace; color: black; background: white;">
-                <div style="text-align:center; margin-bottom:10px; border-bottom:1px dashed #000; padding-bottom:5px;">
-                    <b style="font-size:14px;">BEDAH HP</b><br>
-                    <span style="font-size:8px;">SERVICE & SPAREPART</span>
-                </div>
-                <div style="font-size:9px; border-bottom:1px dashed #000; padding-bottom:5px; margin-bottom:5px;">
-                    ID: ${nota}<br>
-                    TGL: ${new Date().toLocaleString('id-ID')}<br>
-                    BAYAR: ${pay}<br>
-                    GARANSI: ${garansi}
-                </div>
-                ${listHtml}
-                <div style="border-top:1px dashed #000; margin-top:5px; padding-top:5px; display:flex; justify-content:space-between; font-weight:bold; font-size:11px;">
-                    <span>TOTAL</span>
-                    <span>Rp${total.toLocaleString()}</span>
-                </div>
-                <div style="text-align:center; margin-top:10px; font-size:8px; border-top:1px dashed #000; padding-top: 5px;">
-                    Terima Kasih Atas Kunjungan Anda
-                </div>
-            </div>
-        `; 
+        Swal.fire({
+            title: 'CETAK BARCODE',
+            html: `Stok Tersedia: <b>${p.stok}</b><br>Masukkan jumlah label yang ingin dicetak:`,
+            input: 'number',
+            inputValue: p.stok,
+            inputAttributes: { min: 1, max: p.stok, step: 1 },
+            showCancelButton: true,
+            confirmButtonText: 'CETAK SEKARANG',
+            confirmButtonColor: '#4f46e5'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                const qtyToPrint = parseInt(result.value) || 1;
+                const area = document.getElementById('print-area');
+                area.innerHTML = ''; // Clear previous
 
-        area.classList.remove('hidden'); 
-        setTimeout(() => {
-            window.print(); 
-            area.classList.add('hidden'); 
-            area.innerHTML = ''; 
-        }, 500); 
+                let contentHtml = '';
+
+                // LOOPING SEJUMLAH INPUT USER
+                for (let i = 1; i <= qtyToPrint; i++) {
+                    const uniqueCode = `${p.nota}-${i}`; // Membuat kode unik: NOTA-1, NOTA-2
+                    
+                    // Generate Canvas untuk Barcode
+                    const canvas = document.createElement("canvas");
+                    JsBarcode(canvas, uniqueCode, {
+                        format: "CODE128", width: 2, height: 40, displayValue: true, fontSize: 12, lineColor: "#000", margin: 5
+                    });
+                    const imgUrl = canvas.toDataURL("image/png");
+
+                    // Append HTML per item
+                    contentHtml += `
+                        <div class="barcode-item">
+                            <div style="font-size: 10px; font-weight: 800; text-transform: uppercase; margin-bottom: 2px; border-bottom: 1px solid #000; width: 100%; text-align: center;">
+                                ${loggedInUser.cabang === 'ALL' ? 'BEDAH HP' : 'BEDAH HP - ' + loggedInUser.cabang}
+                            </div>
+                            <div style="font-size: 8px; font-weight: bold; margin-bottom: 2px; line-height: 1.1; text-align: center; width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                ${p.nama.substring(0, 25)}
+                            </div>
+                            <img src="${imgUrl}" style="max-width: 95%; height: auto;">
+                            <div style="font-size: 11px; font-weight: 900; margin-top: 2px; border-top: 1px dashed #000; width: 100%; text-align: center;">
+                                Rp ${Number(p.price).toLocaleString('id-ID')}
+                            </div>
+                        </div>
+                    `;
+                }
+
+                area.innerHTML = contentHtml;
+                area.classList.remove('hidden');
+
+                setTimeout(() => {
+                    window.print();
+                    area.classList.add('hidden');
+                    area.innerHTML = '';
+                }, 800); // Delay sedikit lebih lama agar gambar render sempurna
+            }
+        });
     }
 
-    function printSrv(id) { 
-        const s = services.find(x => x.id === id); 
-        // PRINT NOTA SERVICE
-        if(s) {
-            const sisa = s.total - s.dp;
-            const area = document.getElementById('print-area'); 
-            area.innerHTML = `
-            <div style="width:58mm; padding:5px; font-family:monospace; background:white; color:black;">
-                <div style="text-align:center; border-bottom:1px dashed #000; padding-bottom:5px; margin-bottom:5px;">
-                    <b style="font-size:12px">BEDAH HP</b><br><span style="font-size:8px">SERVICE RECEIPT</span>
+    function printSrv(id) {
+        const s = services.find(x => x.id === id);
+        if (!s) return;
+
+        const sisa = s.total - s.dp;
+        // Hitung total gross sebelum diskon (Jasa + Part digabung)
+        const totalGross = s.jasa + s.part; 
+
+        const area = document.getElementById('print-area');
+        
+        // --- DESAIN INVOICE A5/A4 (VERSI HIDE INTERNAL COST) ---
+        area.innerHTML = `
+        <div style="width: 100%; max-width: 210mm; font-family: 'Courier New', monospace; color: black; padding: 20px;">
+            
+            <div style="border-bottom: 2px solid black; padding-bottom: 10px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: start;">
+                <div>
+                    <h1 style="font-size: 24px; font-weight: bold; margin: 0;">BEDAH HP</h1>
+                    <p style="font-size: 12px; margin: 2px 0;">${loggedInUser.cabang === 'ALL' ? 'PUSAT' : loggedInUser.cabang}</p>
+                    <p style="font-size: 12px; margin: 0;">Jasa Service Handphone Professional</p>
                 </div>
-                <div style="font-size:9px; margin-bottom:5px;">Nota: ${s.nota}<br>Plg: ${s.nama}<br>Unit: ${s.unit}</div>
-                <div style="border-top:1px dashed #000; padding-top:5px; font-size:9px;">
-                    <div style="display:flex; justify-content:space-between;"><span>Jasa+Part</span><span>${fmt(s.jasa+s.part)}</span></div>
-                    <div style="display:flex; justify-content:space-between;"><span>Diskon</span><span>-${fmt(s.diskon)}</span></div>
-                    <div style="display:flex; justify-content:space-between; font-weight:bold;"><span>TOTAL</span><span>${fmt(s.total)}</span></div>
-                    <div style="display:flex; justify-content:space-between;"><span>DP</span><span>${fmt(s.dp)}</span></div>
-                    <div style="display:flex; justify-content:space-between; font-weight:bold; margin-top:4px; border-top:1px solid #000;"><span>SISA</span><span>Rp ${fmt(sisa)}</span></div>
+                <div style="text-align: right;">
+                    <h2 style="font-size: 18px; margin: 0; font-weight: bold;">NOTA SERVICE</h2>
+                    <p style="font-size: 14px; font-weight: bold; margin: 5px 0;">${s.nota}</p>
+                    <p style="font-size: 12px; margin: 0;">Tanggal: ${s.tglM}</p>
                 </div>
-            </div>`;
-            area.classList.remove('hidden'); 
-            setTimeout(() => { window.print(); area.classList.add('hidden'); area.innerHTML = ''; }, 500); 
-        }
+            </div>
+
+            <div style="display: flex; margin-bottom: 20px; font-size: 12px;">
+                <div style="flex: 1;">
+                    <table style="width: 100%;">
+                        <tr><td style="width: 80px;">Pelanggan</td><td>: <b>${s.nama}</b></td></tr>
+                        <tr><td>No. WA</td><td>: ${s.wa}</td></tr>
+                    </table>
+                </div>
+                <div style="flex: 1;">
+                    <table style="width: 100%;">
+                        <tr><td style="width: 80px;">Unit</td><td>: <b>${s.unit}</b></td></tr>
+                        <tr><td>Keluhan</td><td>: ${s.rusak}</td></tr>
+                        <tr><td>Teknisi</td><td>: ${s.teknisi}</td></tr>
+                    </table>
+                </div>
+            </div>
+
+            <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 12px; border: 1px solid black;">
+                <thead>
+                    <tr style="background: #f0f0f0;">
+                        <th style="border: 1px solid black; padding: 8px; text-align: left;">KETERANGAN</th>
+                        <th style="border: 1px solid black; padding: 8px; text-align: right; width: 150px;">BIAYA</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td style="border: 1px solid black; padding: 8px;">
+                            Perbaikan ${s.unit} & Penggantian Part
+                            <div style="font-size: 10px; color: #555; margin-top: 2px;">*Termasuk Jasa & Sparepart</div>
+                        </td>
+                        <td style="border: 1px solid black; padding: 8px; text-align: right;">
+                            Rp ${fmt(totalGross)}
+                        </td>
+                    </tr>
+
+                    ${s.diskon > 0 ? `
+                    <tr>
+                        <td style="border: 1px solid black; padding: 8px;">Potongan / Diskon</td>
+                        <td style="border: 1px solid black; padding: 8px; text-align: right; color: red;">- Rp ${fmt(s.diskon)}</td>
+                    </tr>` : ''}
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <td style="border: 1px solid black; padding: 8px; text-align: right; font-weight: bold;">TOTAL BIAYA</td>
+                        <td style="border: 1px solid black; padding: 8px; text-align: right; font-weight: bold;">Rp ${fmt(s.total)}</td>
+                    </tr>
+                    <tr>
+                        <td style="border: 1px solid black; padding: 8px; text-align: right;">DP (Uang Muka)</td>
+                        <td style="border: 1px solid black; padding: 8px; text-align: right;">Rp ${fmt(s.dp)}</td>
+                    </tr>
+                    <tr>
+                        <td style="border: 1px solid black; padding: 8px; text-align: right; font-weight: bold; font-size: 14px;">SISA BAYAR</td>
+                        <td style="border: 1px solid black; padding: 8px; text-align: right; font-weight: bold; font-size: 14px;">Rp ${fmt(sisa)}</td>
+                    </tr>
+                </tfoot>
+            </table>
+
+            <div style="display: flex; justify-content: space-between; margin-top: 30px; font-size: 12px; text-align: center;">
+                <div style="width: 150px;">
+                    <p>Hormat Kami,</p>
+                    <br><br><br>
+                    <p>( ${s.admin} )</p>
+                </div>
+                <div style="width: 250px; text-align: left; font-size: 10px;">
+                    <b>Catatan Garansi:</b><br>
+                    1. Garansi berlaku <b>${s.garansi}</b> sejak diambil.<br>
+                    2. Nota ini wajib dibawa saat klaim garansi.<br>
+                    3. Segel rusak = Garansi hangus.
+                </div>
+                <div style="width: 150px;">
+                    <p>Tanda Terima,</p>
+                    <br><br><br>
+                    <p>( ${s.nama} )</p>
+                </div>
+            </div>
+        </div>`;
+
+        area.classList.remove('hidden');
+        setTimeout(() => {
+            window.print();
+            area.classList.add('hidden');
+            area.innerHTML = '';
+        }, 800);
     }
     
     function updateStockGuide() {
         const namaInput = document.getElementById('in-mut-barang').value.toUpperCase();
         const infoStok = document.getElementById('mut-stock-guide');
-        
-        const barang = products.find(p => p.nama.toUpperCase() === namaInput);
-        
-        if (barang) {
-            infoStok.innerText = `(Tersedia: ${barang.stok})`;
-            if(barang.stok <= 0) infoStok.className = "font-black text-red-500 ml-2";
-            else infoStok.className = "font-black text-indigo-600 ml-2";
-        } else {
+        const selAsal = document.getElementById('in-mut-asal-select');
+        const txtAsal = document.getElementById('in-mut-asal-text');
+
+        // Tentukan Cabang mana yang sedang aktif
+        let asal = (!selAsal.classList.contains('hidden')) ? selAsal.value : txtAsal.value;
+
+        if (!asal || !namaInput) {
             infoStok.innerText = "";
+            return;
+        }
+
+        // Cari barang yang namanya pas DAN cabangnya pas
+        const item = products.find(p => p.nama.toUpperCase() === namaInput && p.cabang.toUpperCase() === asal.toUpperCase());
+        
+        if (item) {
+            infoStok.innerText = `(Tersedia: ${item.stok})`;
+            infoStok.className = item.stok <= 0 ? "font-black text-red-500 ml-2" : "font-black text-indigo-600 ml-2";
+        } else {
+            infoStok.innerText = "(Barang tidak ada)";
+            infoStok.className = "text-slate-400 ml-2 text-[8px]";
         }
     }
 
@@ -1987,7 +2243,18 @@ Swal.fire({
         let cabangInisial = "PST"; 
         const userCabang = (loggedInUser.cabang || "").toUpperCase();
         
-        if (userCabang.includes("AIMAS")) {
+        // --- LOGIC CABANG BARU ---
+        if (userCabang.includes("AIMAS 1")) {
+            cabangInisial = "AM1";
+        } else if (userCabang.includes("AIMAS 2")) {
+            cabangInisial = "AM2";
+        } else if (userCabang.includes("KOTA 1")) {
+            cabangInisial = "KT1";
+        } else if (userCabang.includes("KOTA 2")) {
+            cabangInisial = "KT2";
+        } 
+        // Fallback untuk data lama
+        else if (userCabang.includes("AIMAS")) {
             cabangInisial = "AIM";
         } else if (userCabang.includes("KOTA")) {
             cabangInisial = "KOT";
@@ -2075,46 +2342,6 @@ Swal.fire({
                 timer: 2000
             });
         }
-    }
-
-    function cetakBarcodeBarang(id) {
-        const p = products.find(x => x.id === id);
-        if (!p) return;
-
-        const canvas = document.createElement("canvas");
-        
-        JsBarcode(canvas, p.nota, {
-            format: "CODE128",
-            width: 2,            
-            height: 45,         
-            displayValue: true, 
-            fontSize: 14,        
-            lineColor: "#000",
-            margin: 10          
-        });
-
-        const barcodeDataUrl = canvas.toDataURL("image/png");
-        const area = document.getElementById('print-area');
-
-        area.innerHTML = `
-            <div style="width: 58mm; padding: 5px; text-align: center; color: black; background: white; font-family: 'Courier New', Courier, monospace;">
-                <div style="font-size: 10px; font-weight: 800; text-transform: uppercase; margin-bottom: 4px; border-bottom: 1px solid #000; padding-bottom: 2px;">
-                    ${loggedInUser.cabang === 'ALL' ? 'BEDAH HANDPHONE' : 'BEDAH HP - ' + loggedInUser.cabang}
-                </div>
-                <div style="font-size: 9px; font-weight: bold; margin-bottom: 5px; line-height: 1;">${p.nama}</div>
-                <img src="${barcodeDataUrl}" style="width: 100%; max-width: 160px; height: auto;">
-                <div style="font-size: 11px; font-weight: 900; margin-top: 4px; border-top: 1px dashed #000; padding-top: 4px;">
-                    Rp ${Number(p.price).toLocaleString('id-ID')}
-                </div>
-            </div>
-        `;
-
-        area.classList.remove('hidden');
-        setTimeout(() => {
-            window.print();
-            area.classList.add('hidden');
-            area.innerHTML = ''; 
-        }, 500);
     }
   // --- [MULAI] SCRIPT TAMBAHAN UNTUK PERBAIKAN LAPORAN ---
     function loadLaporanRealtime() {
@@ -2220,9 +2447,253 @@ function renderLaporanRealtime(data) {
     if(document.getElementById('stat-bersih')) document.getElementById('stat-bersih').innerText = "Rp " + totalBersih.toLocaleString('id-ID');
 }
     // --- [SELESAI] SCRIPT TAMBAHAN ---  
+  // --- FUNGSI TAMBAHAN: HAPUS DATA ---
+async function hapusData(sheetName, uniqueId, colIndex) {
+    // 1. Cek apakah user adalah OWNER (Opsional, hapus if ini jika semua role boleh hapus)
+    if (String(loggedInUser.role).toUpperCase() !== 'OWNER') {
+        return Swal.fire('Akses Ditolak', 'Hanya Owner yang boleh menghapus data!', 'error');
+    }
+
+    // 2. Konfirmasi Hapus
+    const result = await Swal.fire({
+        title: 'Yakin Hapus Data?',
+        text: "Data yang dihapus tidak bisa dikembalikan!",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6',
+        confirmButtonText: 'YA, HAPUS PERMANEN'
+    });
+
+    if (!result.isConfirmed) return;
+
+    // 3. Tampilkan Loading
+    Swal.fire({ title: 'Menghapus...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+
+    try {
+        // 4. Kirim Request ke Google Sheet
+        const response = await fetch(WEB_APP_URL, {
+            method: "POST",
+            body: JSON.stringify({
+                action: "deleteData",
+                targetSheet: sheetName,
+                uniqueId: uniqueId,
+                colIndex: colIndex // Kolom tempat Unique ID berada (dimulai dari 0)
+            })
+        });
+
+        const res = await response.json();
+
+        if (res.status === 'success') {
+            Swal.fire('Terhapus!', 'Data berhasil dihapus dari database.', 'success');
+            // 5. Refresh Data
+            loadDataFromCloud();
+        } else {
+            Swal.fire('Gagal', res.message || 'Gagal menghapus data.', 'error');
+        }
+    } catch (err) {
+        console.error(err);
+        Swal.fire('Error', 'Terjadi kesalahan koneksi.', 'error');
+    }
+}
+  // --- FUNGSI EDIT STOK (OWNER ONLY) ---
+async function editStok(id) {
+    // 1. Cek Role Owner
+    if (String(loggedInUser.role).toUpperCase() !== 'OWNER') {
+        return Swal.fire('Akses Ditolak', 'Hanya Owner yang boleh edit data stok!', 'error');
+    }
+
+    // 2. Cari Data Produk Lama
+    const p = products.find(x => x.id === id);
+    if (!p) return;
+
+    // 3. Munculkan Form Edit
+    const { value: formValues } = await Swal.fire({
+        title: 'EDIT DATA STOK',
+        html: `
+            <div class="text-left space-y-3 text-[11px]">
+                <div>
+                    <label class="font-bold text-slate-500">NAMA BARANG</label>
+                    <input id="edit-nama" class="swal2-input !m-0 !w-full !h-10 !text-xs" value="${p.nama}">
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="font-bold text-slate-500">STOK SAAT INI</label>
+                        <input id="edit-qty" class="swal2-input !m-0 !w-full !h-10 !text-xs" value="${p.stok}" onkeyup="formatRibuan(this)">
+                    </div>
+                    <div>
+                        <label class="font-bold text-slate-500">HARGA MODAL</label>
+                        <input id="edit-modal" class="swal2-input !m-0 !w-full !h-10 !text-xs" value="${p.modal}" onkeyup="formatRibuan(this)">
+                    </div>
+                </div>
+                <div>
+                    <label class="font-bold text-slate-500">HARGA JUAL</label>
+                    <input id="edit-jual" class="swal2-input !m-0 !w-full !h-10 !text-xs" value="${p.price}" onkeyup="formatRibuan(this)">
+                </div>
+                <div class="text-red-500 text-[9px] italic mt-2">*Perubahan akan menghapus data lama dan membuat baris baru.</div>
+            </div>
+        `,
+        focusConfirm: false,
+        showCancelButton: true,
+        confirmButtonText: 'SIMPAN PERUBAHAN',
+        confirmButtonColor: '#4f46e5',
+        preConfirm: () => {
+            return {
+                nama: document.getElementById('edit-nama').value.toUpperCase(),
+                qty: document.getElementById('edit-qty').value.replace(/\./g, ""),
+                modal: document.getElementById('edit-modal').value.replace(/\./g, ""),
+                jual: document.getElementById('edit-jual').value.replace(/\./g, "")
+            }
+        }
+    });
+
+    if (formValues) {
+        Swal.fire({ title: 'Memperbarui Data...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+
+        try {
+            // A. Hapus Data Lama (Pakai Nota sebagai ID, di Kolom index 7 / H)
+            await fetch(WEB_APP_URL, {
+                method: "POST",
+                body: JSON.stringify({
+                    action: "deleteData",
+                    targetSheet: "STOK",
+                    uniqueId: p.nota,
+                    colIndex: 7
+                })
+            });
+
+            // B. Siapkan Data Baru (Tetap gunakan Tanggal & Nota Lama agar history terjaga)
+            const rowBaru = [
+                p.tgl,                  // Tanggal asli
+                formValues.nama,        // Nama Baru
+                formValues.qty,         // Qty Baru
+                p.keluar,               // Data lama
+                p.rusak,                // Data lama
+                p.retur,                // Data lama
+                p.kepService,           // Data lama
+                p.nota,                 // Nota Asli (JANGAN UBAH)
+                p.admin,                // Admin asli
+                p.ket || "-",           // Keterangan asli
+                formValues.modal,       // Modal Baru
+                formValues.jual,        // Jual Baru
+                p.cabang                // Cabang asli
+            ];
+
+            // C. Simpan Data Baru
+            await fetch(WEB_APP_URL, {
+                method: "POST",
+                body: JSON.stringify({
+                    action: "saveData",
+                    targetSheet: "STOK",
+                    rowData: rowBaru
+                })
+            });
+
+            // D. Refresh Halaman
+            await loadDataFromCloud();
+            Swal.fire('Sukses', 'Data stok berhasil diperbarui!', 'success');
+
+        } catch (e) {
+            console.error(e);
+            Swal.fire('Error', 'Gagal update data. Cek koneksi.', 'error');
+        }
+    }
+}
+  // --- FUNGSI CETAK STRUK KASIR (SALES) ---
+    function printReceipt(nota, cartItems, subtotal, method, garansi) {
+        const area = document.getElementById('print-area');
+        const tgl = new Date().toLocaleString('id-ID');
+        
+        // Buat Baris Tabel Barang
+        let rows = cartItems.map(item => `
+            <tr>
+                <td style="border: 1px solid black; padding: 5px;">${item.nama}</td>
+                <td style="border: 1px solid black; padding: 5px; text-align: center;">${item.qty}</td>
+                <td style="border: 1px solid black; padding: 5px; text-align: right;">${item.price.toLocaleString('id-ID')}</td>
+                <td style="border: 1px solid black; padding: 5px; text-align: right;">${(item.price * item.qty).toLocaleString('id-ID')}</td>
+            </tr>
+        `).join('');
+
+        // --- DESAIN NOTA PENJUALAN (A5/A4 Friendly) ---
+        area.innerHTML = `
+        <div style="width: 100%; max-width: 210mm; font-family: 'Courier New', monospace; color: black; padding: 20px;">
+            
+            <div style="border-bottom: 2px solid black; padding-bottom: 10px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: start;">
+                <div>
+                    <h1 style="font-size: 24px; font-weight: bold; margin: 0;">BEDAH HP</h1>
+                    <p style="font-size: 12px; margin: 2px 0;">${loggedInUser.cabang === 'ALL' ? 'PUSAT' : loggedInUser.cabang}</p>
+                    <p style="font-size: 12px; margin: 0;">Sparepart & Accessories Original</p>
+                </div>
+                <div style="text-align: right;">
+                    <h2 style="font-size: 18px; margin: 0; font-weight: bold;">NOTA PENJUALAN</h2>
+                    <p style="font-size: 14px; font-weight: bold; margin: 5px 0;">${nota}</p>
+                    <p style="font-size: 11px; margin: 0;">${tgl}</p>
+                </div>
+            </div>
+
+            <div style="margin-bottom: 15px; font-size: 12px; border-bottom: 1px dashed black; padding-bottom: 10px;">
+                <table style="width: 100%;">
+                    <tr>
+                        <td style="width: 100px;">Kasir</td><td>: ${loggedInUser.fullname}</td>
+                        <td style="text-align: right;">Pembayaran : <b>${method}</b></td>
+                    </tr>
+                    <tr>
+                        <td>Garansi</td><td>: ${garansi}</td>
+                        <td></td>
+                    </tr>
+                </table>
+            </div>
+
+            <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 12px; border: 1px solid black;">
+                <thead>
+                    <tr style="background: #f0f0f0;">
+                        <th style="border: 1px solid black; padding: 8px; text-align: left;">NAMA BARANG</th>
+                        <th style="border: 1px solid black; padding: 8px; text-align: center; width: 50px;">QTY</th>
+                        <th style="border: 1px solid black; padding: 8px; text-align: right;">HARGA</th>
+                        <th style="border: 1px solid black; padding: 8px; text-align: right;">TOTAL</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${rows}
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <td colspan="3" style="border: 1px solid black; padding: 8px; text-align: right; font-weight: bold;">GRAND TOTAL</td>
+                        <td style="border: 1px solid black; padding: 8px; text-align: right; font-weight: bold; font-size: 14px;">Rp ${subtotal.toLocaleString('id-ID')}</td>
+                    </tr>
+                </tfoot>
+            </table>
+
+            <div style="margin-top: 20px; font-size: 11px; text-align: center;">
+                <p>Terima kasih sudah berbelanja di BEDAH HP.</p>
+                <p style="font-size: 10px; color: #555;">*Barang yang sudah dibeli tidak dapat ditukar/dikembalikan kecuali ada perjanjian garansi.</p>
+            </div>
+        </div>`;
+
+        area.classList.remove('hidden');
+        setTimeout(() => {
+            window.print();
+            area.classList.add('hidden');
+            area.innerHTML = '';
+        }, 800);
+    }
+  // --- FUNGSI UPDATE LIST BARANG SESUAI CABANG ASAL ---
+function updateListBarangMutasi() {
+        const listMutasi = document.getElementById('data-barang-mutasi');
+        const selAsal = document.getElementById('in-mut-asal-select');
+        const txtAsal = document.getElementById('in-mut-asal-text');
+        
+        // Cek Cabang: Kalau Owner ambil dari Select, kalau Admin ambil dari Text
+        let asal = (!selAsal.classList.contains('hidden')) ? selAsal.value : txtAsal.value;
+        
+        if (!asal) return;
+
+        // Filter list barang HANYA yang stoknya > 0 di cabang tersebut
+        const filtered = products.filter(p => p.cabang.toUpperCase() === asal.toUpperCase());
+        const uniqueNames = [...new Set(filtered.map(p => p.nama))];
+        
+        listMutasi.innerHTML = uniqueNames.map(n => `<option value="${n}">`).join('');
+    }
   </script>
 </body>
 </html>
-
-
-
