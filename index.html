@@ -501,7 +501,10 @@
     <div id="modal-user" class="fixed inset-0 bg-slate-900/60 z-[100] hidden flex items-center justify-center p-4 backdrop-blur-sm">
         <div class="bg-white w-full max-w-md rounded-3xl p-8 uppercase font-bold text-[11px] shadow-2xl">
             <h3 id="modal-user-title" class="mb-6 text-indigo-600 border-b pb-4 text-sm">Tambah User Baru</h3>
+            
             <input type="hidden" id="in-user-id">
+            <input type="hidden" id="in-user-old-name"> 
+
             <div class="space-y-4">
                 <input type="text" id="in-user-name" placeholder="Username" class="w-full p-4 border rounded-2xl bg-slate-50 outline-none">
                 <input type="text" id="in-user-fullname" placeholder="Nama Lengkap" class="w-full p-4 border rounded-2xl bg-slate-50 outline-none">
@@ -675,7 +678,7 @@
 
     <script>
     // 1. URL APPS SCRIPT (Sesuai kode awalmu)
-    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyo3AYLXLx2wMQ6m4Wf18Kw0OSDu9FreV2_8klm84bFsSV4hxNsjl3mR9h02FcswVfMZw/exec";
+    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwA2gLmYOBjLd1g1c0uSgB43jnWMLvewzQDE2V-wnN5BPqnzm3aHiyVgaA4im9RlP0LKQ/exec";
 
     // 2. DARK MODE LOGIC
     function toggleTheme() {
@@ -965,10 +968,15 @@ Swal.fire({
     }
 
     // --- MANAJEMEN USER ---
+    // --- MANAJEMEN USER (FIXED) ---
     function prepareAddUser() {
         if (String(loggedInUser.role).toUpperCase() !== 'OWNER') return Swal.fire('Akses Ditolak', 'Hanya Owner!', 'error');
         document.getElementById('modal-user-title').innerText = "Tambah User Baru";
         document.getElementById('in-user-id').value = "";
+        
+        // Kosongkan nama lama karena ini user baru
+        document.getElementById('in-user-old-name').value = ""; 
+        
         document.getElementById('in-user-name').value = "";
         document.getElementById('in-user-fullname').value = "";
         document.getElementById('in-user-pass').value = "";
@@ -977,9 +985,15 @@ Swal.fire({
 
     function prepareEditUser(id) {
         if (String(loggedInUser.role).toUpperCase() !== 'OWNER') return Swal.fire('Akses Ditolak', 'Hanya Owner!', 'error');
+        
         const user = users.find(u => u.id === id);
+        
         document.getElementById('modal-user-title').innerText = "Edit / Reset Password User";
         document.getElementById('in-user-id').value = user.id;
+        
+        // SIMPAN NAMA LAMA AGAR BISA DI-UPDATE (BUKAN DITAMBAH BARU)
+        document.getElementById('in-user-old-name').value = user.username; 
+        
         document.getElementById('in-user-name').value = user.username;
         document.getElementById('in-user-fullname').value = user.fullname;
         document.getElementById('in-user-role').value = user.role;
@@ -988,40 +1002,85 @@ Swal.fire({
         openModal('modal-user');
     }
 
-    function saveUser() {
-    if (String(loggedInUser.role).toUpperCase() !== 'OWNER') return;
-    const u = document.getElementById('in-user-name').value;
-    const f = document.getElementById('in-user-fullname').value;
-    const r = document.getElementById('in-user-role').value;
-    const c = document.getElementById('in-user-cabang').value;
-    const p = document.getElementById('in-user-pass').value;
-    
-    if(!u || !p) return Swal.fire('Error', 'Username & Password wajib diisi', 'error');
+    async function saveUser() {
+        if (String(loggedInUser.role).toUpperCase() !== 'OWNER') return;
 
-    // Susunan harus: username, fullname, role, password, cabang
-    const rowData = [u, f, r, p, c];
-    
-    Swal.fire({ title: 'Menyimpan User...', didOpen: () => Swal.showLoading() });
-    
-    sendToCloud("USERS", rowData).then(res => {
-        if(res && res.status === "success") {
-            Swal.fire('Sukses', 'User berhasil ditambahkan', 'success');
-            closeModal('modal-user');
-            loadDataFromCloud(); // Refresh data
+        const u = document.getElementById('in-user-name').value.trim();
+        const f = document.getElementById('in-user-fullname').value;
+        const r = document.getElementById('in-user-role').value;
+        const c = document.getElementById('in-user-cabang').value;
+        const p = document.getElementById('in-user-pass').value.trim();
+        const oldUser = document.getElementById('in-user-old-name').value; // Ambil Nama Lama
+        
+        if(!u || !p) return Swal.fire('Error', 'Username & Password wajib diisi', 'error');
+
+        const rowData = [u, f, r, p, c];
+        
+        Swal.fire({ title: 'Menyimpan...', didOpen: () => Swal.showLoading() });
+        
+        try {
+            let response;
+            // JIKA ADA NAMA LAMA = UPDATE. JIKA TIDAK = SIMPAN BARU.
+            if (oldUser) {
+                 response = await fetch(WEB_APP_URL, {
+                    method: "POST",
+                    body: JSON.stringify({ action: "updateUser", oldUsername: oldUser, rowData: rowData })
+                });
+            } else {
+                response = await fetch(WEB_APP_URL, {
+                    method: "POST",
+                    body: JSON.stringify({ action: "saveData", targetSheet: "USERS", rowData: rowData })
+                });
+            }
+
+            const result = await response.json();
+
+            if(result.status === "success") {
+                Swal.fire('Sukses', 'Data user berhasil disimpan!', 'success');
+                closeModal('modal-user');
+                loadDataFromCloud(); // Refresh Data
+            } else {
+                Swal.fire('Gagal', result.message, 'error'); 
+            }
+        } catch (e) {
+            Swal.fire('Error', 'Gagal koneksi ke server', 'error');
         }
-    });
-}
+    }
 
-    function deleteUser(id) {
+    async function deleteUser(id) {
         if (String(loggedInUser.role).toUpperCase() !== 'OWNER') return Swal.fire('Akses Ditolak', 'Hanya Owner!', 'error');
-        if(users.length <= 1) return Swal.fire('Error', 'Minimal harus ada 1 user', 'error');
-        Swal.fire({
+        if(users.length <= 1) return Swal.fire('Error', 'Minimal harus ada 1 user.', 'error');
+
+        const targetUser = users.find(u => u.id === id);
+        if (!targetUser) return;
+
+        const result = await Swal.fire({
             title: 'Hapus User?',
+            text: `Hapus user "${targetUser.username}" permanen?`,
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#ef4444',
             confirmButtonText: 'YA, HAPUS'
-        }).then((result) => { if (result.isConfirmed) { users = users.filter(x => x.id !== id); renderAll(); } });
+        });
+
+        if (result.isConfirmed) {
+            Swal.fire({ title: 'Menghapus...', didOpen: () => Swal.showLoading() });
+            
+            // HAPUS KE SERVER BERDASARKAN USERNAME
+            await fetch(WEB_APP_URL, {
+                method: "POST",
+                body: JSON.stringify({
+                    action: "deleteData",
+                    targetSheet: "USERS",
+                    uniqueId: targetUser.username, 
+                    colIndex: 0 
+                })
+            });
+
+            users = users.filter(x => x.id !== id);
+            renderAll();
+            Swal.fire('Terhapus', 'User hilang selamanya.', 'success');
+        }
     }
 
     function formatRibuan(input) { let value = input.value.replace(/[^0-9]/g, ""); if (value === "") { input.value = ""; return; } input.value = parseInt(value).toLocaleString('id-ID'); }
@@ -2836,4 +2895,3 @@ function updateListPartService() {
   </script>
 </body>
 </html>
-
